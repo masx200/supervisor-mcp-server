@@ -1,0 +1,171 @@
+PowerShell 7.5.4
+PS C:\Users\Administrator> E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe
+                           E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe help
+error when parsing command: Unknown command `help'. Please specify one command of: ctl, init, service or version
+PS C:\Users\Administrator> E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe --help
+Usage:
+  E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe [OPTIONS] <command>
+
+Application Options:
+  /c, /configuration:  the configuration file
+  /d, /daemon          run as daemon
+      /env-file:       the environment file
+
+Help Options:
+  /?                   Show this help message
+  /h, /help            Show this help message
+
+Available commands:
+  ctl      Control a running daemon
+  init     initialize a template
+  service  install/uninstall/start/stop service
+  version  show the version of supervisor
+
+PS C:\Users\Administrator> E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe ctl --help
+Usage:
+  E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe [OPTIONS] ctl [ctl-OPTIONS] <command>
+
+The ctl subcommand resembles supervisorctl command of original daemon.
+
+Application Options:
+  /c, /configuration:  the configuration file
+  /d, /daemon          run as daemon
+      /env-file:       the environment file
+
+Help Options:
+  /?                   Show this help message
+  /h, /help            Show this help message
+
+[ctl command options]
+      /s, /serverurl:  URL on which supervisord server is listening
+      /u, /user:       the user name
+      /P, /password:   the password
+      /v, /verbose     Show verbose debug information
+
+Available commands:
+  logtail   get the standard output&standard error of the program
+  pid       get the pid of specified program
+  reload    reload the programs
+  restart   restart programs
+  shutdown  shutdown supervisord
+  signal    send signal to program
+  start     start programs
+  status    show program status
+  stop      stop programs
+
+PS C:\Users\Administrator> E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe init --help
+Usage:
+  E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe [OPTIONS] init [init-OPTIONS]
+
+The init subcommand writes the supported configurations to specified file
+
+Application Options:
+  /c, /configuration:  the configuration file
+  /d, /daemon          run as daemon
+      /env-file:       the environment file
+
+Help Options:
+  /?                   Show this help message
+  /h, /help            Show this help message
+
+[init command options]
+      /o, /output:     the output file name
+
+PS C:\Users\Administrator> E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe service --help
+Usage:
+  E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe [OPTIONS] service
+
+install/uninstall/start/stop service
+
+Application Options:
+  /c, /configuration:  the configuration file
+  /d, /daemon          run as daemon
+      /env-file:       the environment file
+
+Help Options:
+  /?                   Show this help message
+  /h, /help            Show this help message
+
+PS C:\Users\Administrator> E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe version
+v0.6.8
+PS C:\Users\Administrator> E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe version --help
+Usage:
+  E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe [OPTIONS] version
+
+display the supervisor version
+
+Application Options:
+  /c, /configuration:  the configuration file
+  /d, /daemon          run as daemon
+      /env-file:       the environment file
+
+Help Options:
+  /?                   Show this help message
+  /h, /help            Show this help message
+
+PS C:\Users\Administrator> E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe /c "E:\projects\refactor-the-project\supervisord.conf" ctl
+time="2025-11-14T16:34:00+08:00" level=info msg="load configuration from file" file="E:\\projects\\refactor-the-project\\supervisord.conf"
+Fail to open log file --logs/supervisord.log-- with error open logs/supervisord.log: The system cannot find the path specified.
+time="2025-11-14T16:34:00+08:00" level=info msg="create process:intelligentanalysis-web"
+Failed to write to log, invalid argument
+time="2025-11-14T16:34:00+08:00" level=info msg="create process:officialwebsite-master"
+Failed to write to log, invalid argument
+time="2025-11-14T16:34:00+08:00" level=info msg="create process:intelligentanalysis-api"
+Failed to write to log, invalid argument
+time="2025-11-14T16:34:00+08:00" level=info msg="stop listening"
+Failed to write to log, invalid argument
+time="2025-11-14T16:34:00+08:00" level=fatal msg="fail to listen on address" addr="127.0.0.1:9002" protocol=tcp
+Failed to write to log, invalid argument
+PS C:\Users\Administrator> E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe /c "E:\projects\refactor-the-project\supervisord.conf" ctl  logtail
+Invalid arguments.
+Usage: supervisord ctl logtail <program>
+PS C:\Users\Administrator> E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe /c "E:\projects\refactor-the-project\supervisord.conf" ctl   status
+intelligentanalysis-api          Running   pid 23748, uptime 0:09:32
+intelligentanalysis-web          Running   pid 23348, uptime 0:09:32
+officialwebsite-master           Running   pid 3688, uptime 0:09:32
+PS C:\Users\Administrator> E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe /c "E:\projects\refactor-the-project\supervisord.conf" ctl  logtail intelligentanalysis-api
+E:\projects\intelligentanalysisapi-1\.venv\Lib\site-packages\fastapi\openapi\utils.py:242: UserWarning: Duplicate Operation ID upload_file_api_v1_file_upload_post for function upload_file at E:\projects\intelligentanalysisapi-1\app\common\permission.py
+  warnings.warn(message, stacklevel=1)
+INFO:     127.0.0.1:61112 - "GET /openapi.json HTTP/1.1" 200 OK
+2025-11-14 16:34:45.448 | ERROR    | main:custom_404_handler:149 | 路径不对: /favicon.ico
+INFO:     127.0.0.1:61112 - "GET /favicon.ico HTTP/1.1" 200 OK
+PS C:\Users\Administrator> E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe /c "E:\projects\refactor-the-project\supervisord.conf" ctl  pid intelligentanalysis-api
+23748
+PS C:\Users\Administrator> E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe /c "E:\projects\refactor-the-project\supervisord.conf" ctl  pid intelligentanalysis-api -v
+23748
+PS C:\Users\Administrator> E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe /c "E:\projects\refactor-the-project\supervisord.conf" ctl -v pid intelligentanalysis-api
+23748
+PS C:\Users\Administrator> E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe /c "E:\projects\refactor-the-project\supervisord.conf" ctl -v status intelligentanalysis-api
+intelligentanalysis-api          Running   pid 23748, uptime 0:11:27
+PS C:\Users\Administrator> E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe /c "E:\projects\refactor-the-project\supervisord.conf" ctl -v signal
+Invalid arguments.
+Usage: supervisord ctl signal <signal_name> <program>[...]
+PS C:\Users\Administrator> E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe /c "E:\projects\refactor-the-project\supervisord.conf" ctl -v signal intelligentanalysis-api
+Invalid arguments.
+Usage: supervisord ctl signal <signal_name> <program>[...]
+PS C:\Users\Administrator> E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe /c "E:\projects\refactor-the-project\supervisord.conf" ctl -v signal intelligentanalysis-api --help
+Usage:
+  E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe [OPTIONS] ctl [ctl-OPTIONS] signal
+
+send signal to program
+
+Application Options:
+  /c, /configuration:  the configuration file
+  /d, /daemon          run as daemon
+      /env-file:       the environment file
+
+Help Options:
+  /?                   Show this help message
+  /h, /help            Show this help message
+
+[ctl command options]
+
+    Control a running daemon:
+      /s, /serverurl:  URL on which supervisord server is listening
+      /u, /user:       the user name
+      /P, /password:   the password
+      /v, /verbose     Show verbose debug information
+
+PS C:\Users\Administrator> E:\迅雷下载\supervisord_0.7.3_Windows_64-bit\supervisord_0.7.3_Windows_64-bit\supervisord.exe /c "E:\projects\refactor-the-project\supervisord.conf" ctl -v status intelligentanalysis-api
+intelligentanalysis-api          Running   pid 23748, uptime 0:12:40
+PS C:\Users\Administrator>
