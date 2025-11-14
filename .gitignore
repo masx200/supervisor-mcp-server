@@ -80,3 +80,4 @@ Thumbs.db
 # Project specific
 *.backup
 config/local.conf
+.claude/settings.local.json
