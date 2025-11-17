@@ -27,5 +27,17 @@
   },
   "engines": {
     "node": ">=18.0.0"
-  }
+  },
+  "main": "simple-mcp-test.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/masx200/supervisor-mcp-server.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/masx200/supervisor-mcp-server/issues"
+  },
+  "homepage": "https://github.com/masx200/supervisor-mcp-server#readme"
 }
