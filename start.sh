@@ -1,98 +1,67 @@
 #!/bin/bash
 
-# Supervisor MCP Server 启动脚本
+# Supervisor MCP Server Linux/macOS Startup Script
+# This script builds the project and starts the server with environment variables
 
-set -e
+set -e  # Exit on any error
 
 # 颜色定义
-RED='\033[0;31m'
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}   Supervisor MCP Server${NC}"
 echo -e "${BLUE}========================================${NC}"
 
-# 检查 Node.js 版本
-if ! command -v node &> /dev/null; then
-    echo -e "${RED}错误: 未找到 Node.js，请先安装 Node.js 18+${NC}"
-    exit 1
-fi
+echo -e "${YELLOW}🚀 Building Supervisor MCP Server...${NC}"
 
-NODE_VERSION=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
-if [ "$NODE_VERSION" -lt 18 ]; then
-    echo -e "${RED}错误: Node.js 版本过低 ($NODE_VERSION)，需要 18+${NC}"
-    exit 1
-fi
+# Build the project
+npm run build
 
-echo -e "${GREEN}✓ Node.js 版本检查通过: $(node -v)${NC}"
+echo -e "${GREEN}✅ Build completed successfully${NC}"
 
-# 检查依赖
-if [ ! -d "node_modules" ]; then
-    echo -e "${YELLOW}正在安装依赖...${NC}"
-    npm install
-fi
+# Set environment variables for Linux/macOS
+export SUPERVISORD_HOST="127.0.0.1"
+export SUPERVISORD_PORT="9002"
+export SUPERVISORD_COMMAND_DIR="/var/log/supervisor"
+export SUPERVISORD_USERNAME="admin"
+export SUPERVISORD_PASSWORD="password"
+export SUPERVISORD_EXECUTABLE_PATH="/usr/local/bin/supervisord"
+export CONFIG_FILE_PATH="/etc/supervisord.conf"
+export MCP_PORT="30000"
 
-echo -e "${GREEN}✓ 依赖检查完成${NC}"
-
-# 检查配置文件
-if [ ! -f ".env" ]; then
-    if [ -f ".env.example" ]; then
-        echo -e "${YELLOW}未找到 .env 文件，从 .env.example 复制...${NC}"
-        cp .env.example .env
-        echo -e "${YELLOW}请编辑 .env 文件以配置 supervisord 连接信息${NC}"
-    else
-        echo -e "${RED}错误: 未找到 .env 配置文件${NC}"
-        exit 1
-    fi
-fi
-
-echo -e "${GREEN}✓ 配置文件检查完成${NC}"
-
-# 加载环境变量
-source .env
-
-# 显示配置信息
 echo ""
-echo -e "${BLUE}配置信息:${NC}"
-echo -e "  supervisord 地址: ${GREEN}${SUPERVISORD_HOST:-127.0.0.1}:${SUPERVISORD_PORT:-9001}${NC}"
-echo -e "  MCP 服务器端口: ${GREEN}${MCP_PORT:-3000}${NC}"
-echo -e "  配置文件路径: ${GREEN}${SUPERVISORD_CONFIG_FILE:-/etc/supervisord.conf}${NC}"
+echo -e "${BLUE}🔧 Environment variables configured:${NC}"
+echo -e "  SUPERVISORD_HOST=${GREEN}$SUPERVISORD_HOST${NC}"
+echo -e "  SUPERVISORD_PORT=${GREEN}$SUPERVISORD_PORT${NC}"
+echo -e "  SUPERVISORD_COMMAND_DIR=${GREEN}$SUPERVISORD_COMMAND_DIR${NC}"
+echo -e "  SUPERVISORD_USERNAME=${GREEN}$SUPERVISORD_USERNAME${NC}"
+echo -e "  SUPERVISORD_PASSWORD=${GREEN}[REDACTED]${NC}"
+echo -e "  SUPERVISORD_EXECUTABLE_PATH=${GREEN}$SUPERVISORD_EXECUTABLE_PATH${NC}"
+echo -e "  CONFIG_FILE_PATH=${GREEN}$CONFIG_FILE_PATH${NC}"
+echo -e "  MCP_PORT=${GREEN}$MCP_PORT${NC}"
+
+echo ""
+echo -e "${BLUE}📡 Connecting to supervisord at ${GREEN}$SUPERVISORD_HOST:$SUPERVISORD_PORT${NC}"
+echo -e "${BLUE}📁 Using config file: ${GREEN}$CONFIG_FILE_PATH${NC}"
 echo ""
 
-# 检查 supervisord 连接
-echo -e "${YELLOW}检查 supervisord 连接...${NC}"
+# Check supervisord connection (optional)
 if command -v curl &> /dev/null; then
-    if curl -f -s "http://${SUPERVISORD_HOST:-127.0.0.1}:${SUPERVISORD_PORT:-9001}/program/list" > /dev/null 2>&1; then
-        echo -e "${GREEN}✓ supervisord 连接正常${NC}"
+    echo -e "${YELLOW}🔍 Checking supervisord connection...${NC}"
+    if curl -f -s "http://$SUPERVISORD_HOST:$SUPERVISORD_PORT/program/list" > /dev/null 2>&1; then
+        echo -e "${GREEN}✅ Supervisord connection successful${NC}"
     else
-        echo -e "${YELLOW}⚠ 无法连接到 supervisord，请确保 supervisord 正在运行且配置正确${NC}"
+        echo -e "${YELLOW}⚠️  Cannot connect to supervisord. Please ensure supervisord is running.${NC}"
     fi
 else
-    echo -e "${YELLOW}⚠ 未安装 curl，无法检查 supervisord 连接${NC}"
+    echo -e "${YELLOW}⚠️  curl not available, skipping connection check${NC}"
 fi
 
 echo ""
-echo -e "${BLUE}启动 MCP 服务器...${NC}"
+echo -e "${BLUE}🚀 Starting Supervisor MCP Server on port ${GREEN}$MCP_PORT${NC}..."
 
-# 启动服务器
-if [ "$1" == "dev" ] || [ "$1" == "development" ]; then
-    echo -e "${YELLOW}以开发模式启动（使用 tsx）${NC}"
-    npm run dev
-elif [ "$1" == "build" ]; then
-    echo -e "${YELLOW}编译 TypeScript...${NC}"
-    npm run build
-    echo -e "${GREEN}✓ 编译完成，启动服务器...${NC}"
-    npm start
-else
-    echo -e "${GREEN}默认启动模式${NC}"
-    if [ -f "dist/server.js" ]; then
-        npm start
-    else
-        echo -e "${YELLOW}首次运行，先编译 TypeScript...${NC}"
-        npm run build
-        npm start
-    fi
-fi
+# Start the server
+npm start
