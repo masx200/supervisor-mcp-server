@@ -6,36 +6,41 @@
 
 - **官方 INI 解析** - 使用 npm 官方维护的 `ini` 库进行配置文件解析
 - **HTTP 请求日志** - 集成 Morgan 中间件，记录所有 HTTP 请求（Apache combined 格式）
-- **Streamable HTTP** - 基于 MCP SDK 的标准 Streamable HTTP 传输协议  
+- **Streamable HTTP** - 基于 MCP SDK 的标准 Streamable HTTP 传输协议
 - **类型安全** - 完整的 TypeScript 类型定义和验证
 - **生产就绪** - 包含错误处理、日志记录、健康检查等功能
 
 ## 功能特性
 
 ### 进程管理
+
 - ✅ **列出程序** - 获取所有被管理程序的状态信息
 - ✅ **启动程序** - 启动单个程序
-- ✅ **停止程序** - 停止单个程序  
+- ✅ **停止程序** - 停止单个程序
 - ✅ **批量操作** - 批量启动/停止多个程序
 - ✅ **状态查询** - 获取单个程序的详细状态信息
 
 ### 日志管理
+
 - ✅ **日志查看** - 读取程序 stdout/stderr 日志
 - ✅ **分页读取** - 支持指定偏移和长度的分页读取
 - ✅ **末尾读取** - 从文件末尾读取指定行数
 - ✅ **文件检查** - 自动检测可读日志文件
 
 ### 配置管理
+
 - ✅ **配置查看** - 查看完整配置文件或指定节
 - ✅ **配置更新** - 更新配置项的值
 - ✅ **配置节管理** - 添加、删除配置节
 - ✅ **配置备份** - 自动备份配置文件
 
 ### 系统控制
+
 - ✅ **配置重载** - 重载 supervisord 配置
 - ✅ **健康检查** - 监控与 supervisord 的连接状态
 
 ### HTTP 日志记录
+
 - ✅ **请求日志** - 使用 Morgan 中间件记录所有 HTTP 请求
 - ✅ **标准格式** - Apache combined 格式，支持日志分析工具
 - ✅ **实时输出** - 日志直接输出到控制台，便于实时监控
@@ -69,11 +74,13 @@ MCP_PORT=3000                       # MCP 服务器监听端口
 ## 启动服务器
 
 ### 开发模式
+
 ```bash
 npm run dev
 ```
 
 ### 生产模式
+
 ```bash
 npm run build
 npm start
@@ -99,88 +106,96 @@ serverurl=http://127.0.0.1:9001
 ### 进程管理
 
 #### 1. list_programs
+
 列出所有程序及其状态。
 
 ```typescript
 // 使用示例
-const programs = await callTool('list_programs', {});
+const programs = await callTool("list_programs", {});
 ```
 
 #### 2. start_program
+
 启动指定程序。
 
 ```typescript
-const result = await callTool('start_program', {
-  name: 'my_program'
+const result = await callTool("start_program", {
+  name: "my_program",
 });
 ```
 
 #### 3. stop_program
+
 停止指定程序。
 
 ```typescript
-const result = await callTool('stop_program', {
-  name: 'my_program'
+const result = await callTool("stop_program", {
+  name: "my_program",
 });
 ```
 
 #### 4. start_programs
+
 批量启动程序。
 
 ```typescript
-const result = await callTool('start_programs', {
-  names: ['program1', 'program2', 'program3']
+const result = await callTool("start_programs", {
+  names: ["program1", "program2", "program3"],
 });
 ```
 
 #### 5. stop_programs
+
 批量停止程序。
 
 ```typescript
-const result = await callTool('stop_programs', {
-  names: ['program1', 'program2', 'program3']
+const result = await callTool("stop_programs", {
+  names: ["program1", "program2", "program3"],
 });
 ```
 
 #### 6. get_program_status
+
 获取单个程序的详细状态。
 
 ```typescript
-const status = await callTool('get_program_status', {
-  name: 'my_program'
+const status = await callTool("get_program_status", {
+  name: "my_program",
 });
 ```
 
 ### 日志管理
 
 #### 7. read_log
+
 读取程序日志。
 
 ```typescript
 // 读取完整日志
-const fullLog = await callTool('read_log', {
-  name: 'my_program',
-  type: 'stdout'
+const fullLog = await callTool("read_log", {
+  name: "my_program",
+  type: "stdout",
 });
 
 // 从文件末尾读取最近 50 行
-const recentLog = await callTool('read_log', {
-  name: 'my_program',
-  type: 'stdout',
+const recentLog = await callTool("read_log", {
+  name: "my_program",
+  type: "stdout",
   tail: true,
-  lines: 50
+  lines: 50,
 });
 
 // 从指定位置读取 1KB 数据
-const partialLog = await callTool('read_log', {
-  name: 'my_program',
-  type: 'stdout',
+const partialLog = await callTool("read_log", {
+  name: "my_program",
+  type: "stdout",
   offset: 1024,
-  length: 1024
+  length: 1024,
 });
 ```
 
 参数说明：
+
 - `name`: 程序名称
 - `type`: 日志类型 ('stdout' | 'stderr')
 - `offset`: 字节偏移（可选）
@@ -191,36 +206,39 @@ const partialLog = await callTool('read_log', {
 ### 配置管理
 
 #### 8. get_config
+
 获取配置文件。
 
 ```typescript
 // 获取完整配置
-const fullConfig = await callTool('get_config', {});
+const fullConfig = await callTool("get_config", {});
 
 // 获取指定节
-const programSection = await callTool('get_config', {
-  section: 'program:my_program'
+const programSection = await callTool("get_config", {
+  section: "program:my_program",
 });
 ```
 
 #### 9. update_config
+
 更新配置项。
 
 ```typescript
-const result = await callTool('update_config', {
-  section: 'program:my_program',
-  key: 'command',
-  value: '/usr/bin/myapp --flag value'
+const result = await callTool("update_config", {
+  section: "program:my_program",
+  key: "command",
+  value: "/usr/bin/myapp --flag value",
 });
 ```
 
 ### 系统控制
 
 #### 10. reload_supervisor
+
 重载 supervisord 配置。
 
 ```typescript
-const result = await callTool('reload_supervisor', {});
+const result = await callTool("reload_supervisor", {});
 ```
 
 ## API 接口
@@ -228,6 +246,7 @@ const result = await callTool('reload_supervisor', {});
 服务器还提供了一些 HTTP API 端点：
 
 ### 健康检查
+
 ```bash
 GET /health
 ```
@@ -272,6 +291,7 @@ supervisor-mcp-server/
 ### 日志记录
 
 服务器会记录：
+
 - MCP 请求处理
 - supervisord 连接状态
 - 错误和异常情况
