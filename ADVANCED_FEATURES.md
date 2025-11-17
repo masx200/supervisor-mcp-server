@@ -1,6 +1,7 @@
 # Supervisor MCP Server 高级功能指南
 
-本文档介绍 Supervisor MCP Server 新增的高级功能，包括身份验证、supervisord 系统信息、信号发送等功能。
+本文档介绍 Supervisor MCP Server 新增的高级功能，包括身份验证、supervisord
+系统信息、信号发送等功能。
 
 ## 🔐 身份验证功能
 
@@ -31,6 +32,7 @@ export SUPERVISORD_PASSWORD="your_password"
 **描述**: 获取 supervisord 的 PID、版本信息和系统状态
 
 **使用方法**:
+
 ```json
 {
   "tool": "get_supervisor_info"
@@ -38,6 +40,7 @@ export SUPERVISORD_PASSWORD="your_password"
 ```
 
 **返回示例**:
+
 ```
 Supervisor System Information:
 PID: 1234
@@ -55,12 +58,14 @@ HTTP Server: 127.0.0.1:9002
 **描述**: 读取 supervisord 守护进程的日志文件
 
 **参数**:
+
 - `offset` (可选): 字节偏移量
 - `length` (可选): 读取字节数
 - `lines` (可选): 读取行数（适用于尾部读取）
 - `tail` (可选): 从文件末尾读取
 
 **使用方法**:
+
 ```json
 {
   "tool": "get_supervisor_log",
@@ -72,6 +77,7 @@ HTTP Server: 127.0.0.1:9002
 ```
 
 **返回示例**:
+
 ```
 Supervisor Log Content from logs/supervisord.log:
 File size: 1048576 bytes
@@ -90,10 +96,12 @@ time="2025-11-14T16:34:00+08:00" level=info msg="create process:intelligentanaly
 **描述**: 向指定程序发送 Unix 信号
 
 **参数**:
+
 - `name`: 程序名称
 - `signal`: 信号名称（如 SIGHUP, SIGTERM, SIGKILL, USR1）
 
 **支持的信号**:
+
 - `SIGHUP`: 重新加载配置
 - `SIGTERM`: 优雅停止
 - `SIGKILL`: 强制终止
@@ -101,6 +109,7 @@ time="2025-11-14T16:34:00+08:00" level=info msg="create process:intelligentanaly
 - `SIGUSR2`: 自定义信号 2
 
 **使用方法**:
+
 ```json
 {
   "tool": "send_signal",
@@ -112,6 +121,7 @@ time="2025-11-14T16:34:00+08:00" level=info msg="create process:intelligentanaly
 ```
 
 **返回示例**:
+
 ```
 Send signal 'SIGHUP' to program 'intelligentanalysis-api': Success
 ```
@@ -123,9 +133,11 @@ Send signal 'SIGHUP' to program 'intelligentanalysis-api': Success
 **描述**: 获取指定程序的详细信息，包括运行时间和 PID
 
 **参数**:
+
 - `name`: 程序名称
 
 **使用方法**:
+
 ```json
 {
   "tool": "get_program_info",
@@ -136,6 +148,7 @@ Send signal 'SIGHUP' to program 'intelligentanalysis-api': Success
 ```
 
 **返回示例**:
+
 ```
 Program: intelligentanalysis-api
 Status: RUNNING
@@ -276,7 +289,8 @@ SUPERVISORD_EXECUTABLE_PATH=/path/to/supervisord
 
 ### 配置建议
 
-1. **设置可执行文件路径**: 对于信号发送等功能，`SUPERVISORD_EXECUTABLE_PATH` 是必需的
+1. **设置可执行文件路径**: 对于信号发送等功能，`SUPERVISORD_EXECUTABLE_PATH`
+   是必需的
 2. **统一认证**: 使用与 supervisord 相同的认证信息
 3. **日志监控**: 定期检查 supervisord 本身的日志
 
@@ -314,4 +328,5 @@ SUPERVISORD_EXECUTABLE_PATH=/path/to/supervisord
 2. **检查配置文件**: 验证 supervisord 配置是否正确
 3. **权限验证**: 确保程序有足够的文件访问权限
 
-这些高级功能大大增强了 MCP 服务器的能力，使其能够处理更复杂的 supervisord 管理任务。
+这些高级功能大大增强了 MCP 服务器的能力，使其能够处理更复杂的 supervisord
+管理任务。

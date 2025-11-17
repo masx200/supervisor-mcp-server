@@ -3,6 +3,7 @@
 ## Common Commands
 
 ### Development
+
 ```bash
 npm install              # Install dependencies
 npm run dev             # Start development server with tsx
@@ -13,6 +14,7 @@ npm start               # Run compiled server from dist/server.js
 ```
 
 ### Environment Setup
+
 ```bash
 cp .env.example .env    # Create environment configuration
 # Edit .env with supervisord connection details
@@ -20,7 +22,9 @@ cp .env.example .env    # Create environment configuration
 
 ## Architecture Overview
 
-This is a **Model Context Protocol (MCP) server** that provides an interface to manage supervisord processes through its REST API. The server acts as a bridge between MCP clients and the supervisord daemon.
+This is a **Model Context Protocol (MCP) server** that provides an interface to
+manage supervisord processes through its REST API. The server acts as a bridge
+between MCP clients and the supervisord daemon.
 
 ### Core Components
 
@@ -48,18 +52,21 @@ This is a **Model Context Protocol (MCP) server** that provides an interface to 
 ### MCP Tools Available
 
 **Process Management:**
+
 - `list_programs` - Get all managed processes and their status
 - `start_program` / `stop_program` - Control individual processes
 - `start_programs` / `stop_programs` - Batch operations
 - `get_program_status` - Detailed status for single process
 
 **Log Management:**
+
 - `read_log` - Read logs with pagination options:
   - `offset`/`length` for byte-range reading
   - `tail: true, lines: N` for recent entries
   - `type: 'stdout'|'stderr'` for log type selection
 
 **Configuration Management:**
+
 - `get_config` - Retrieve full config or specific sections
 - `update_config` - Safely update configuration values
 - `reload_supervisor` - Reload supervisord configuration
@@ -67,6 +74,7 @@ This is a **Model Context Protocol (MCP) server** that provides an interface to 
 ### Environment Configuration
 
 Required environment variables:
+
 - `SUPERVISORD_HOST` - supervisord daemon address (default: 127.0.0.1)
 - `SUPERVISORD_PORT` - supervisord HTTP port (default: 9001)
 - `SUPERVISORD_USERNAME/PASSWORD` - Optional supervisord authentication
@@ -75,7 +83,8 @@ Required environment variables:
 
 ### Key Design Patterns
 
-1. **MCP Protocol Integration** - Uses StreamableHTTPServerTransport from the MCP SDK
+1. **MCP Protocol Integration** - Uses StreamableHTTPServerTransport from the
+   MCP SDK
 2. **Type Safety** - Comprehensive TypeScript interfaces and Zod validation
 3. **Error Handling** - All operations return structured error responses
 4. **Configuration Safety** - Automatic backups before config modifications
@@ -84,6 +93,7 @@ Required environment variables:
 ### supervisord Prerequisites
 
 The supervisord daemon must be configured with HTTP server:
+
 ```ini
 [inet_http_server]
 port=127.0.0.1:9001

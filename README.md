@@ -1,11 +1,13 @@
 # Supervisor MCP Server
 
-一个使用 TypeScript 开发的 Model Context Protocol (MCP) 服务器，用于通过 supervisord 的 REST API 进行进程管理和监控。
+一个使用 TypeScript 开发的 Model Context Protocol (MCP) 服务器，用于通过
+supervisord 的 REST API 进行进程管理和监控。
 
 ## 🚀 技术特色
 
 - **官方 INI 解析** - 使用 npm 官方维护的 `ini` 库进行配置文件解析
-- **HTTP 请求日志** - 集成 Morgan 中间件，记录所有 HTTP 请求（Apache combined 格式）
+- **HTTP 请求日志** - 集成 Morgan 中间件，记录所有 HTTP 请求（Apache combined
+  格式）
 - **Streamable HTTP** - 基于 MCP SDK 的标准 Streamable HTTP 传输协议
 - **类型安全** - 完整的 TypeScript 类型定义和验证
 - **生产就绪** - 包含错误处理、日志记录、健康检查等功能

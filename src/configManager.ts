@@ -1,5 +1,5 @@
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { stringify, parse } from 'ini';
+import { existsSync, readFileSync, writeFileSync } from "fs";
+import { parse, stringify } from "ini";
 
 // 配置文件节接口
 export interface ConfigSection {
@@ -22,7 +22,7 @@ export interface ConfigOperationResult {
 export class ConfigManager {
   private configPath: string;
 
-  constructor(configPath: string = '/etc/supervisord.conf') {
+  constructor(configPath: string = "/etc/supervisord.conf") {
     this.configPath = configPath;
   }
 
@@ -34,7 +34,7 @@ export class ConfigManager {
       if (!existsSync(this.configPath)) {
         throw new Error(`Configuration file not found: ${this.configPath}`);
       }
-      return readFileSync(this.configPath, 'utf8');
+      return readFileSync(this.configPath, "utf8");
     } catch (error: any) {
       throw new Error(`Failed to read config file: ${error.message}`);
     }
@@ -46,11 +46,11 @@ export class ConfigManager {
   parseConfig(content: string): SupervisordConfig {
     try {
       const config = parse(content) as any;
-      
+
       // 转换 ini 库的输出格式为我们的接口格式
       const result: SupervisordConfig = {};
       for (const [key, value] of Object.entries(config)) {
-        if (typeof value === 'object' && value !== null) {
+        if (typeof value === "object" && value !== null) {
           // 这是一个节 [section]
           result[key] = value as ConfigSection;
         } else {
@@ -61,7 +61,7 @@ export class ConfigManager {
           result.__GLOBAL__[key] = value as string;
         }
       }
-      
+
       return result;
     } catch (error: any) {
       throw new Error(`Failed to parse config: ${error.message}`);
@@ -75,9 +75,9 @@ export class ConfigManager {
     try {
       // 转换我们的格式为 ini 库的输入格式
       const iniFormat: any = {};
-      
+
       for (const [sectionName, section] of Object.entries(config)) {
-        if (sectionName === '__GLOBAL__') {
+        if (sectionName === "__GLOBAL__") {
           // 处理全局配置项
           Object.assign(iniFormat, section);
         } else {
@@ -85,11 +85,11 @@ export class ConfigManager {
           iniFormat[sectionName] = section;
         }
       }
-      
+
       return stringify(iniFormat, {
         whitespace: false,
         align: false,
-        newline: false
+        newline: false,
       });
     } catch (error: any) {
       throw new Error(`Failed to serialize config: ${error.message}`);
@@ -105,38 +105,44 @@ export class ConfigManager {
       const config = this.parseConfig(configContent);
       return config[sectionName] || null;
     } catch (error: any) {
-      throw new Error(`Failed to get section '${sectionName}': ${error.message}`);
+      throw new Error(
+        `Failed to get section '${sectionName}': ${error.message}`,
+      );
     }
   }
 
   /**
    * 更新配置项
    */
-  updateConfig(sectionName: string, key: string, value: string | number | boolean): ConfigOperationResult {
+  updateConfig(
+    sectionName: string,
+    key: string,
+    value: string | number | boolean,
+  ): ConfigOperationResult {
     try {
       const configContent = this.readConfig();
       const config = this.parseConfig(configContent);
-      
+
       if (!config[sectionName]) {
         config[sectionName] = {};
       }
-      
+
       config[sectionName][key] = value;
       const newContent = this.serializeConfig(config);
-      
+
       // 备份原文件
       this.backupConfig();
-      
-      writeFileSync(this.configPath, newContent, 'utf8');
-      
+
+      writeFileSync(this.configPath, newContent, "utf8");
+
       return {
         success: true,
-        message: `Updated ${sectionName}.${key} = ${value}`
+        message: `Updated ${sectionName}.${key} = ${value}`,
       };
     } catch (error: any) {
       return {
         success: false,
-        message: `Failed to update config: ${error.message}`
+        message: `Failed to update config: ${error.message}`,
       };
     }
   }
@@ -144,34 +150,37 @@ export class ConfigManager {
   /**
    * 添加新的配置节
    */
-  addSection(sectionName: string, sectionConfig: ConfigSection = {}): ConfigOperationResult {
+  addSection(
+    sectionName: string,
+    sectionConfig: ConfigSection = {},
+  ): ConfigOperationResult {
     try {
       const configContent = this.readConfig();
       const config = this.parseConfig(configContent);
-      
+
       if (config[sectionName]) {
         return {
           success: false,
-          message: `Section '${sectionName}' already exists`
+          message: `Section '${sectionName}' already exists`,
         };
       }
-      
+
       config[sectionName] = sectionConfig;
       const newContent = this.serializeConfig(config);
-      
+
       // 备份原文件
       this.backupConfig();
-      
-      writeFileSync(this.configPath, newContent, 'utf8');
-      
+
+      writeFileSync(this.configPath, newContent, "utf8");
+
       return {
         success: true,
-        message: `Added new section '${sectionName}'`
+        message: `Added new section '${sectionName}'`,
       };
     } catch (error: any) {
       return {
         success: false,
-        message: `Failed to add section: ${error.message}`
+        message: `Failed to add section: ${error.message}`,
       };
     }
   }
@@ -183,30 +192,30 @@ export class ConfigManager {
     try {
       const configContent = this.readConfig();
       const config = this.parseConfig(configContent);
-      
+
       if (!config[sectionName]) {
         return {
           success: false,
-          message: `Section '${sectionName}' does not exist`
+          message: `Section '${sectionName}' does not exist`,
         };
       }
-      
+
       delete config[sectionName];
       const newContent = this.serializeConfig(config);
-      
+
       // 备份原文件
       this.backupConfig();
-      
-      writeFileSync(this.configPath, newContent, 'utf8');
-      
+
+      writeFileSync(this.configPath, newContent, "utf8");
+
       return {
         success: true,
-        message: `Deleted section '${sectionName}'`
+        message: `Deleted section '${sectionName}'`,
       };
     } catch (error: any) {
       return {
         success: false,
-        message: `Failed to delete section: ${error.message}`
+        message: `Failed to delete section: ${error.message}`,
       };
     }
   }
@@ -218,30 +227,30 @@ export class ConfigManager {
     try {
       const configContent = this.readConfig();
       const config = this.parseConfig(configContent);
-      
+
       if (!config[sectionName] || !(key in config[sectionName])) {
         return {
           success: false,
-          message: `Config item '${sectionName}.${key}' does not exist`
+          message: `Config item '${sectionName}.${key}' does not exist`,
         };
       }
-      
+
       delete config[sectionName][key];
       const newContent = this.serializeConfig(config);
-      
+
       // 备份原文件
       this.backupConfig();
-      
-      writeFileSync(this.configPath, newContent, 'utf8');
-      
+
+      writeFileSync(this.configPath, newContent, "utf8");
+
       return {
         success: true,
-        message: `Deleted config item '${sectionName}.${key}'`
+        message: `Deleted config item '${sectionName}.${key}'`,
       };
     } catch (error: any) {
       return {
         success: false,
-        message: `Failed to delete config item: ${error.message}`
+        message: `Failed to delete config item: ${error.message}`,
       };
     }
   }
@@ -253,7 +262,7 @@ export class ConfigManager {
     try {
       const configContent = this.readConfig();
       const config = this.parseConfig(configContent);
-      return Object.keys(config).filter(name => name !== '__GLOBAL__');
+      return Object.keys(config).filter((name) => name !== "__GLOBAL__");
     } catch (error: any) {
       throw new Error(`Failed to get section names: ${error.message}`);
     }
@@ -264,18 +273,19 @@ export class ConfigManager {
    */
   backupConfig(backupPath?: string): ConfigOperationResult {
     try {
-      const backupFilePath = backupPath || `${this.configPath}.backup.${Date.now()}`;
+      const backupFilePath = backupPath ||
+        `${this.configPath}.backup.${Date.now()}`;
       const configContent = this.readConfig();
-      writeFileSync(backupFilePath, configContent, 'utf8');
-      
+      writeFileSync(backupFilePath, configContent, "utf8");
+
       return {
         success: true,
-        message: `Configuration backed up to ${backupFilePath}`
+        message: `Configuration backed up to ${backupFilePath}`,
       };
     } catch (error: any) {
       return {
         success: false,
-        message: `Failed to backup config: ${error.message}`
+        message: `Failed to backup config: ${error.message}`,
       };
     }
   }
@@ -295,37 +305,39 @@ export class ConfigManager {
   /**
    * 批量更新配置项
    */
-  updateMultipleConfigs(updates: Array<{
-    section: string;
-    key: string;
-    value: string | number | boolean;
-  }>): ConfigOperationResult {
+  updateMultipleConfigs(
+    updates: Array<{
+      section: string;
+      key: string;
+      value: string | number | boolean;
+    }>,
+  ): ConfigOperationResult {
     try {
       const configContent = this.readConfig();
       const config = this.parseConfig(configContent);
-      
+
       for (const { section, key, value } of updates) {
         if (!config[section]) {
           config[section] = {};
         }
         config[section][key] = value;
       }
-      
+
       const newContent = this.serializeConfig(config);
-      
+
       // 备份原文件
       this.backupConfig();
-      
-      writeFileSync(this.configPath, newContent, 'utf8');
-      
+
+      writeFileSync(this.configPath, newContent, "utf8");
+
       return {
         success: true,
-        message: `Updated ${updates.length} configuration items`
+        message: `Updated ${updates.length} configuration items`,
       };
     } catch (error: any) {
       return {
         success: false,
-        message: `Failed to update multiple configs: ${error.message}`
+        message: `Failed to update multiple configs: ${error.message}`,
       };
     }
   }
@@ -339,12 +351,12 @@ export class ConfigManager {
       this.parseConfig(configContent);
       return {
         isValid: true,
-        errors: []
+        errors: [],
       };
     } catch (error: any) {
       return {
         isValid: false,
-        errors: [error.message]
+        errors: [error.message],
       };
     }
   }
@@ -361,20 +373,20 @@ export class ConfigManager {
     try {
       const configContent = this.readConfig();
       const config = this.parseConfig(configContent);
-      
+
       const totalSections = Object.keys(config).length;
       const totalKeys = Object.values(config).reduce(
         (count, section) => count + Object.keys(section).length,
-        0
+        0,
       );
-      
-      const stats = require('fs').statSync(this.configPath);
-      
+
+      const stats = require("fs").statSync(this.configPath);
+
       return {
         totalSections,
         totalKeys,
         fileSize: stats.size,
-        lastModified: stats.mtime
+        lastModified: stats.mtime,
       };
     } catch (error: any) {
       throw new Error(`Failed to get config stats: ${error.message}`);

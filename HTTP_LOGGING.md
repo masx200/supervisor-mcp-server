@@ -4,7 +4,8 @@
 
 ## 概述
 
-项目已集成 **Morgan** HTTP 请求日志中间件，用于记录所有传入的 HTTP 请求和响应信息。Morgan 是 Node.js 生态系统中最流行和可靠的 HTTP 请求日志记录库。
+项目已集成 **Morgan** HTTP 请求日志中间件，用于记录所有传入的 HTTP
+请求和响应信息。Morgan 是 Node.js 生态系统中最流行和可靠的 HTTP 请求日志记录库。
 
 ## 技术特性
 
@@ -16,10 +17,10 @@
 
 2. **代码集成**
    ```typescript
-   import morgan from 'morgan';
-   
+   import morgan from "morgan";
+
    // 配置 Morgan 中间件
-   app.use(morgan('combined'));
+   app.use(morgan("combined"));
    ```
 
 3. **配置位置**
@@ -75,17 +76,17 @@ HTTP Request Logging: Morgan middleware enabled (combined format)
 如需将日志写入文件，可以修改 `src/server.ts`：
 
 ```typescript
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
 // 创建写入流
 const accessLogStream = fs.createWriteStream(
-  path.join(__dirname, '../logs/access.log'),
-  { flags: 'a' }
+  path.join(__dirname, "../logs/access.log"),
+  { flags: "a" },
 );
 
 // 配置 Morgan 使用文件流
-app.use(morgan('combined', { stream: accessLogStream }));
+app.use(morgan("combined", { stream: accessLogStream }));
 ```
 
 ### 3. 日志轮转（高级）
@@ -113,48 +114,58 @@ app.use(morgan('combined', { stream: accessLogStream }));
 
 ```typescript
 // 简洁格式
-app.use(morgan('tiny'));
+app.use(morgan("tiny"));
 
 // 开发环境格式（带颜色）
-app.use(morgan('dev'));
+app.use(morgan("dev"));
 
 // 自定义格式
-app.use(morgan(':method :url :status :res[content-length] - :response-time ms'));
+app.use(
+  morgan(":method :url :status :res[content-length] - :response-time ms"),
+);
 
 // 标准格式
-app.use(morgan('common'));
+app.use(morgan("common"));
 
 // 短格式
-app.use(morgan('short'));
+app.use(morgan("short"));
 ```
 
 ## MCP 特定日志分析
 
 ### 初始化请求
+
 ```
 POST /mcp HTTP/1.1" 200 1024
 ```
+
 - 通常较大响应（1024+ bytes）
 - 包含服务器元数据和可用工具列表
 
 ### 工具调用
+
 ```
 POST /mcp HTTP/1.1" 200 256
 ```
+
 - 通常较小响应（256-512 bytes）
 - 包含工具执行结果
 
 ### 健康检查
+
 ```
 GET /health HTTP/1.1" 200 64
 ```
+
 - 小响应（64 bytes 左右）
 - 返回 JSON 格式的服务器状态
 
 ### SSE 流
+
 ```
 GET /mcp HTTP/1.1" 200 4096
 ```
+
 - 大响应（>4096 bytes）
 - 包含服务器发送的事件数据
 
@@ -191,8 +202,8 @@ GET /mcp HTTP/1.1" 200 4096
    - Morgan 是高性能的，但可以配置跳过某些请求
    ```typescript
    // 只记录错误响应
-   app.use(morgan('combined', {
-     skip: (req, res) => res.statusCode < 400
+   app.use(morgan("combined", {
+     skip: (req, res) => res.statusCode < 400,
    }));
    ```
 
@@ -208,15 +219,15 @@ Morgan 支持多种配置选项：
 
 ```typescript
 // 立即记录（请求开始时）
-app.use(morgan('combined', { immediate: true }));
+app.use(morgan("combined", { immediate: true }));
 
 // 条件记录
-app.use(morgan('combined', {
-  skip: (req, res) => req.url === '/health'
+app.use(morgan("combined", {
+  skip: (req, res) => req.url === "/health",
 }));
 
 // 自定义流
-app.use(morgan('combined', { stream: customStream }));
+app.use(morgan("combined", { stream: customStream }));
 ```
 
 ## 总结
@@ -230,6 +241,7 @@ Morgan HTTP 日志功能为 Supervisor MCP Server 提供了：
 - ✅ **生产就绪**: 稳定可靠的日志记录解决方案
 
 通过这个功能，系统管理员可以：
+
 - 监控服务器请求模式
 - 分析性能问题
 - 进行安全审计

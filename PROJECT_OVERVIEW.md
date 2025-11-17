@@ -2,7 +2,8 @@
 
 ## 🎉 项目成功完成！
 
-我已经成功创建了一个功能完整的 TypeScript MCP 服务器，用于通过 supervisord 的 REST API 进行进程管理。
+我已经成功创建了一个功能完整的 TypeScript MCP 服务器，用于通过 supervisord 的
+REST API 进行进程管理。
 
 ## 📁 项目结构
 
@@ -25,6 +26,7 @@ supervisor-mcp-server/
 ## 🚀 核心功能实现
 
 ### ✅ 进程管理（9个 MCP 工具）
+
 1. **list_programs** - 列出所有程序状态
 2. **start_program** - 启动单个程序
 3. **stop_program** - 停止单个程序
@@ -37,6 +39,7 @@ supervisor-mcp-server/
 10. **reload_supervisor** - 重载 supervisord 配置
 
 ### ✅ 高级特性
+
 - **Streamable HTTP 传输** - 使用 MCP SDK 的标准传输协议
 - **会话管理** - 支持 MCP 会话的创建和恢复
 - **日志分页** - 支持 offset/length 参数的日志读取
@@ -57,18 +60,19 @@ supervisor-mcp-server/
 
 服务器正确映射了以下 supervisord API：
 
-| MCP Tool | Supervisord API |
-|----------|-----------------|
-| list_programs | GET /program/list |
-| start_program | POST /program/start/{name} |
-| stop_program | POST /program/stop/{name} |
-| start_programs | POST /program/startPrograms |
-| stop_programs | POST /program/stopPrograms |
-| reload_supervisor | POST /supervisor/reload |
+| MCP Tool          | Supervisord API             |
+| ----------------- | --------------------------- |
+| list_programs     | GET /program/list           |
+| start_program     | POST /program/start/{name}  |
+| stop_program      | POST /program/stop/{name}   |
+| start_programs    | POST /program/startPrograms |
+| stop_programs     | POST /program/stopPrograms  |
+| reload_supervisor | POST /supervisor/reload     |
 
 ## 🔧 配置方式
 
 ### 1. 环境变量配置
+
 ```bash
 SUPERVISORD_HOST=127.0.0.1
 SUPERVISORD_PORT=9001
@@ -79,7 +83,9 @@ MCP_PORT=3000
 ```
 
 ### 2. supervisord 配置
+
 需要在 supervisord.conf 中启用 HTTP 服务器：
+
 ```ini
 [inet_http_server]
 port=127.0.0.1:9001
@@ -90,6 +96,7 @@ password=password
 ## 🚀 启动方式
 
 ### 快速启动
+
 ```bash
 cd supervisor-mcp-server
 cp .env.example .env
@@ -98,6 +105,7 @@ cp .env.example .env
 ```
 
 ### 手动启动
+
 ```bash
 npm install
 npm run build
@@ -105,6 +113,7 @@ npm start
 ```
 
 ### 开发模式
+
 ```bash
 npm run dev
 ```
@@ -112,39 +121,44 @@ npm run dev
 ## 💡 使用示例
 
 ### 1. 列出所有程序
+
 ```typescript
-const programs = await callTool('list_programs', {});
+const programs = await callTool("list_programs", {});
 ```
 
 ### 2. 启动程序
+
 ```typescript
-const result = await callTool('start_program', {
-  name: 'my_app'
+const result = await callTool("start_program", {
+  name: "my_app",
 });
 ```
 
 ### 3. 读取程序日志（最后100行）
+
 ```typescript
-const log = await callTool('read_log', {
-  name: 'my_app',
-  type: 'stdout',
+const log = await callTool("read_log", {
+  name: "my_app",
+  type: "stdout",
   tail: true,
-  lines: 100
+  lines: 100,
 });
 ```
 
 ### 4. 更新配置
+
 ```typescript
-const result = await callTool('update_config', {
-  section: 'program:my_app',
-  key: 'command',
-  value: '/usr/bin/myapp --flag new_value'
+const result = await callTool("update_config", {
+  section: "program:my_app",
+  key: "command",
+  value: "/usr/bin/myapp --flag new_value",
 });
 ```
 
 ## 🔍 健康检查
 
 服务器提供 `/health` 端点用于监控：
+
 ```bash
 curl http://localhost:3000/health
 ```

@@ -40,18 +40,21 @@ axios                        # HTTP 客户端
 ## 🎯 主要 MCP 工具
 
 ### 进程管理
+
 - `list_programs` - 列出所有程序
 - `start_program` / `stop_program` - 程序控制
 - `start_programs` / `stop_programs` - 批量操作
 - `get_program_status` - 程序状态详情
 
-### 日志管理  
+### 日志管理
+
 - `read_log` - **支持分页读取**的日志查看
   - `tail: true, lines: 100` - 查看最后 100 行
   - `offset: 1024, length: 2048` - 指定字节范围读取
   - `type: 'stderr'` - 读取错误日志
 
 ### 配置管理
+
 - `get_config` - 查看配置文件
 - `update_config` - **安全的配置更新**（自动备份）
 - `reload_supervisor` - 重载配置
@@ -75,20 +78,21 @@ curl http://localhost:3000/health
 
 ## 🎉 优势对比
 
-| 特性 | 手写解析器 | **官方 ini 库** |
-|------|------------|------------------|
-| 解析准确性 | 基础实现 | 经过验证的稳定算法 |
+| 特性         | 手写解析器 | **官方 ini 库**    |
+| ------------ | ---------- | ------------------ |
+| 解析准确性   | 基础实现   | 经过验证的稳定算法 |
 | INI 特性支持 | 基本键值对 | 注释、数组、嵌套节 |
-| 错误处理 | 基础处理 | 完善的错误报告 |
-| 性能 | 纯 JS 实现 | C++ 优化实现 |
-| 社区支持 | 无 | 活跃的社区维护 |
-| 类型安全 | 手动定义 | 官方类型定义 |
+| 错误处理     | 基础处理   | 完善的错误报告     |
+| 性能         | 纯 JS 实现 | C++ 优化实现       |
+| 社区支持     | 无         | 活跃的社区维护     |
+| 类型安全     | 手动定义   | 官方类型定义       |
 
 ## 📖 完整文档
 
 - [`README.md`](./README.md) - 详细使用文档
 - [`PROJECT_OVERVIEW.md`](./PROJECT_OVERVIEW.md) - 项目技术概览
 - [`.env.example`](./.env.example) - 环境配置示例
-- [`example-supervisord.conf`](./example-supervisord.conf) - supervisord 配置示例
+- [`example-supervisord.conf`](./example-supervisord.conf) - supervisord
+  配置示例
 
 **项目已完成并可直接使用！** 🎊
