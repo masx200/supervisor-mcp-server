@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync, statSync } from "fs";
+import { existsSync, readFileSync, statSync, writeFileSync } from "fs";
 import { parse, stringify } from "ini";
 
 // 配置文件节接口

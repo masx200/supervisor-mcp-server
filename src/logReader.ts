@@ -1,4 +1,4 @@
-import { readFileSync, statSync, openSync, readSync, closeSync } from "fs";
+import { closeSync, openSync, readFileSync, readSync, statSync } from "fs";
 import { createReadStream } from "fs";
 import { createInterface } from "readline";
 

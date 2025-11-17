@@ -33,13 +33,16 @@ Copy `.env.example` to `.env` and configure the following key variables:
 
 - `SUPERVISORD_HOST` - supervisord HTTP server host (default: 127.0.0.1)
 - `SUPERVISORD_PORT` - supervisord HTTP server port (default: 9001)
-- `CONFIG_FILE_PATH` or `SUPERVISORD_CONFIG_FILE` - path to supervisord.conf file
-- `SUPERVISORD_COMMAND_DIR` - supervisord command directory for log file resolution
+- `CONFIG_FILE_PATH` or `SUPERVISORD_CONFIG_FILE` - path to supervisord.conf
+  file
+- `SUPERVISORD_COMMAND_DIR` - supervisord command directory for log file
+  resolution
 
 **Optional:**
 
 - `SUPERVISORD_USERNAME/PASSWORD` - supervisord authentication
-- `SUPERVISORD_EXECUTABLE_PATH` - path to supervisord binary for advanced features
+- `SUPERVISORD_EXECUTABLE_PATH` - path to supervisord binary for advanced
+  features
 - `MCP_PORT` - MCP server port (default: 3000)
 
 ## Architecture
@@ -122,23 +125,29 @@ Relative log paths in configuration are automatically resolved relative to
    - Problem: `require("fs")` usage causing "require is not defined" errors
    - Files Fixed:
      - `logReader.ts`: Replaced `require("fs")` with proper ES module imports
-     - `configManager.ts`: Replaced `require("fs").statSync()` with `import { statSync }`
+     - `configManager.ts`: Replaced `require("fs").statSync()` with
+       `import { statSync }`
    - Result: All log reading and configuration management features work properly
 
 3. **Environment Variable Configuration Fixed**
    - Problem: `CONFIG_FILE_PATH` environment variable not being read
-   - Solution: Added support for both `CONFIG_FILE_PATH` and `SUPERVISORD_CONFIG_FILE`
+   - Solution: Added support for both `CONFIG_FILE_PATH` and
+     `SUPERVISORD_CONFIG_FILE`
    - Result: Configuration file path resolution works correctly
 
 4. **Port Configuration Fixed**
    - Problem: Server running on wrong port (3000 instead of 30000)
-   - Solution: Ensured proper environment variable inheritance from PowerShell script
-   - Result: Server runs on configured port (30000) and connects to supervisord on port 9002
+   - Solution: Ensured proper environment variable inheritance from PowerShell
+     script
+   - Result: Server runs on configured port (30000) and connects to supervisord
+     on port 9002
 
 ### Test Results
 
 All MCP tools are now fully functional:
-- ✅ **get_supervisor_info**: Returns correct PID (4168), version, and system info
+
+- ✅ **get_supervisor_info**: Returns correct PID (4168), version, and system
+  info
 - ✅ **get_supervisor_log**: Successfully reads supervisord daemon logs
 - ✅ **list_programs**: Shows all managed programs with correct status
 - ✅ **start/stop_programs**: Process management works correctly
@@ -148,6 +157,7 @@ All MCP tools are now fully functional:
 ### Production Deployment
 
 For production use, ensure:
+
 1. Set proper environment variables (see `start.ps1` for example)
 2. Configure supervisord with correct log and PID file paths
 3. Use appropriate authentication credentials

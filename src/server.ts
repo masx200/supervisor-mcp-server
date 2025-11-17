@@ -21,13 +21,12 @@ const SUPERVISORD_PORT = process.env.SUPERVISORD_PORT || "9001";
 const SUPERVISORD_USERNAME = process.env.SUPERVISORD_USERNAME;
 const SUPERVISORD_PASSWORD = process.env.SUPERVISORD_PASSWORD;
 const SUPERVISORD_EXECUTABLE_PATH = process.env.SUPERVISORD_EXECUTABLE_PATH; // supervisord 可执行文件路径
-const CONFIG_FILE_PATH =
-  process.env.CONFIG_FILE_PATH ||
+const CONFIG_FILE_PATH = process.env.CONFIG_FILE_PATH ||
   process.env.SUPERVISORD_CONFIG_FILE ||
   "/etc/supervisord.conf";
 /** Supervisord 运行命令所在目录（用于查找日志文件） */
-const SUPERVISORD_COMMAND_DIR =
-  process.env.SUPERVISORD_COMMAND_DIR || "/var/log/supervisor";
+const SUPERVISORD_COMMAND_DIR = process.env.SUPERVISORD_COMMAND_DIR ||
+  "/var/log/supervisor";
 const MCP_PORT = process.env.MCP_PORT
   ? parseInt(process.env.MCP_PORT, 10)
   : 3000;
@@ -47,7 +46,7 @@ const basicAuthMiddleware = (req: Request, res: Response, next: Function) => {
   try {
     const base64Credentials = authHeader.split(" ")[1];
     const credentials = Buffer.from(base64Credentials, "base64").toString(
-      "utf8"
+      "utf8",
     );
     const [username, password] = credentials.split(":");
 
@@ -144,7 +143,7 @@ const supervisordUtils = {
 
       const processSUPERVISORD = spawn(SUPERVISORD_EXECUTABLE_PATH, args);
       console.log(
-        `Executing: ${SUPERVISORD_EXECUTABLE_PATH} ${args.join(" ")}`
+        `Executing: ${SUPERVISORD_EXECUTABLE_PATH} ${args.join(" ")}`,
       );
       const lsSUPERVISORD = processSUPERVISORD;
       lsSUPERVISORD.stdout.on("data", (data) => {
@@ -203,7 +202,7 @@ const supervisordClient = new SupervisordClient(
   `http://${SUPERVISORD_HOST}:${SUPERVISORD_PORT}`,
   SUPERVISORD_USERNAME,
   SUPERVISORD_PASSWORD,
-  SUPERVISORD_COMMAND_DIR
+  SUPERVISORD_COMMAND_DIR,
 );
 
 // 创建 MCP 服务器
@@ -215,7 +214,7 @@ const createServer = () => {
       websiteUrl:
         "https://github.com/modelcontextprotocol/supervisor-mcp-server",
     },
-    { capabilities: { logging: {} } }
+    { capabilities: { logging: {} } },
   );
 
   // 1. 列出所有程序
@@ -239,7 +238,7 @@ const createServer = () => {
               `  Description: ${prog.description}\n` +
               `  Group: ${prog.group}\n` +
               `  Started: ${new Date(prog.start * 1000).toISOString()}\n` +
-              `  Log File: ${prog.logfile}\n`
+              `  Log File: ${prog.logfile}\n`,
           )
           .join("\n");
 
@@ -262,7 +261,7 @@ const createServer = () => {
           ],
         };
       }
-    }
+    },
   );
 
   // 2. 启动单个程序
@@ -300,7 +299,7 @@ const createServer = () => {
           ],
         };
       }
-    }
+    },
   );
 
   // 3. 停止单个程序
@@ -338,7 +337,7 @@ const createServer = () => {
           ],
         };
       }
-    }
+    },
   );
 
   // 4. 批量启动程序
@@ -360,9 +359,9 @@ const createServer = () => {
           content: [
             {
               type: "text",
-              text: `Batch start programs [${names.join(", ")}]: ${
-                result.message
-              }`,
+              text: `Batch start programs [${
+                names.join(", ")
+              }]: ${result.message}`,
             },
           ],
         };
@@ -377,7 +376,7 @@ const createServer = () => {
           ],
         };
       }
-    }
+    },
   );
 
   // 5. 批量停止程序
@@ -399,9 +398,9 @@ const createServer = () => {
           content: [
             {
               type: "text",
-              text: `Batch stop programs [${names.join(", ")}]: ${
-                result.message
-              }`,
+              text: `Batch stop programs [${
+                names.join(", ")
+              }]: ${result.message}`,
             },
           ],
         };
@@ -416,7 +415,7 @@ const createServer = () => {
           ],
         };
       }
-    }
+    },
   );
 
   // 6. 读取程序日志
@@ -455,7 +454,7 @@ const createServer = () => {
       try {
         const logPath = await supervisordClient.getProgramLogPath(
           name,
-          type as "stdout" | "stderr" | undefined
+          type as "stdout" | "stderr" | undefined,
         );
 
         if (!logPath) {
@@ -489,8 +488,7 @@ const createServer = () => {
           content: [
             {
               type: "text",
-              text:
-                `Log content from ${logPath}:\n` +
+              text: `Log content from ${logPath}:\n` +
                 `File size: ${fileSize} bytes\n` +
                 `Read: ${logContent.readSize} bytes\n` +
                 `Offset: ${logContent.offset}\n` +
@@ -510,7 +508,7 @@ const createServer = () => {
           ],
         };
       }
-    }
+    },
   );
 
   // 7. 获取配置文件
@@ -545,8 +543,7 @@ const createServer = () => {
             content: [
               {
                 type: "text",
-                text:
-                  `[${section}]\n` +
+                text: `[${section}]\n` +
                   Object.entries(sectionConfig)
                     .map(([key, value]) => `${key}=${value}`)
                     .join("\n"),
@@ -575,7 +572,7 @@ const createServer = () => {
           ],
         };
       }
-    }
+    },
   );
 
   // 8. 更新配置
@@ -615,7 +612,7 @@ const createServer = () => {
           ],
         };
       }
-    }
+    },
   );
 
   // 9. 重载 supervisord
@@ -651,7 +648,7 @@ const createServer = () => {
           ],
         };
       }
-    }
+    },
   );
 
   // 10. 程序状态检查
@@ -680,8 +677,7 @@ const createServer = () => {
           };
         }
 
-        const status =
-          `Program: ${program.name}\n` +
+        const status = `Program: ${program.name}\n` +
           `Status: ${program.statename}\n` +
           `PID: ${program.pid}\n` +
           `Group: ${program.group}\n` +
@@ -717,7 +713,7 @@ const createServer = () => {
           ],
         };
       }
-    }
+    },
   );
 
   // 11. 获取 supervisord PID 和版本信息
@@ -734,8 +730,7 @@ const createServer = () => {
         const version = await supervisordUtils.getSupervisordVersion();
         const logPath = supervisordUtils.getSupervisordLogPath();
 
-        const info =
-          `Supervisor System Information:\n` +
+        const info = `Supervisor System Information:\n` +
           `PID: ${pid || "Unknown"}\n` +
           `Version: ${version || "Unknown"}\n` +
           `Executable Path: ${
@@ -764,7 +759,7 @@ const createServer = () => {
           ],
         };
       }
-    }
+    },
   );
 
   // 12. 查看 supervisord 本身日志
@@ -823,8 +818,7 @@ const createServer = () => {
           content: [
             {
               type: "text",
-              text:
-                `Supervisor Log Content from ${logPath}:\n` +
+              text: `Supervisor Log Content from ${logPath}:\n` +
                 `File size: ${fileSize} bytes\n` +
                 `Read: ${logContent.readSize} bytes\n` +
                 `Offset: ${logContent.offset}\n` +
@@ -844,7 +838,7 @@ const createServer = () => {
           ],
         };
       }
-    }
+    },
   );
 
   // 13. 发送信号给程序
@@ -868,7 +862,8 @@ const createServer = () => {
             content: [
               {
                 type: "text",
-                text: `Error: SUPERVISORD_EXECUTABLE_PATH environment variable not configured`,
+                text:
+                  `Error: SUPERVISORD_EXECUTABLE_PATH environment variable not configured`,
               },
             ],
           };
@@ -892,12 +887,13 @@ const createServer = () => {
           content: [
             {
               type: "text",
-              text: `Error sending signal to program '${name}': ${error.message}`,
+              text:
+                `Error sending signal to program '${name}': ${error.message}`,
             },
           ],
         };
       }
-    }
+    },
   );
 
   // 14. 获取单个程序详细信息
@@ -933,12 +929,13 @@ const createServer = () => {
         const hours = Math.floor(runtime / 3600);
         const minutes = Math.floor((runtime % 3600) / 60);
         const seconds = runtime % 60;
-        const uptime = `${hours}:${minutes
-          .toString()
-          .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+        const uptime = `${hours}:${
+          minutes
+            .toString()
+            .padStart(2, "0")
+        }:${seconds.toString().padStart(2, "0")}`;
 
-        const info =
-          `Program: ${program.name}\n` +
+        const info = `Program: ${program.name}\n` +
           `Status: ${program.statename}\n` +
           `PID: ${program.pid}\n` +
           `Group: ${program.group}\n` +
@@ -968,7 +965,7 @@ const createServer = () => {
           ],
         };
       }
-    }
+    },
   );
 
   // 15. 创建新程序
@@ -997,7 +994,7 @@ const createServer = () => {
           .number()
           .default(1)
           .describe(
-            "Number of seconds program needs to stay running to consider it successfully started"
+            "Number of seconds program needs to stay running to consider it successfully started",
           ),
         startretries: z
           .number()
@@ -1133,8 +1130,7 @@ const createServer = () => {
           content: [
             {
               type: "text",
-              text:
-                `Successfully created program '${name}':\n` +
+              text: `Successfully created program '${name}':\n` +
                 `Command: ${command}\n` +
                 `Directory: ${directory || "Default"}\n` +
                 `User: ${user || "Default"}\n` +
@@ -1157,7 +1153,7 @@ const createServer = () => {
           ],
         };
       }
-    }
+    },
   );
 
   // 16. 删除程序
@@ -1236,8 +1232,7 @@ const createServer = () => {
           content: [
             {
               type: "text",
-              text:
-                `Successfully deleted program '${name}'\n` +
+              text: `Successfully deleted program '${name}'\n` +
                 `The program configuration has been removed from supervisord.conf\n` +
                 `Note: Use 'reload_supervisor' to apply the changes.`,
             },
@@ -1254,7 +1249,7 @@ const createServer = () => {
           ],
         };
       }
-    }
+    },
   );
 
   return server;
@@ -1291,7 +1286,7 @@ app.use(
   cors({
     origin: "*", // Allow all origins for demo purposes
     exposedHeaders: ["Mcp-Session-Id"],
-  })
+  }),
 );
 
 // 传输映射
@@ -1330,7 +1325,7 @@ const mcpPostHandler = async (req: Request, res: Response) => {
         const sid = transport.sessionId;
         if (sid && transports[sid]) {
           console.log(
-            `Transport closed for session ${sid}, removing from transports map`
+            `Transport closed for session ${sid}, removing from transports map`,
           );
           delete transports[sid];
         }
@@ -1435,22 +1430,22 @@ app.get("/health", async (req: Request, res: Response) => {
 app.listen(MCP_PORT, () => {
   console.log(`Supervisor MCP Server listening on port ${MCP_PORT}`);
   console.log(
-    `HTTP Request Logging: Morgan middleware enabled (combined format)`
+    `HTTP Request Logging: Morgan middleware enabled (combined format)`,
   );
   console.log(
-    `Connecting to supervisord at ${SUPERVISORD_HOST}:${SUPERVISORD_PORT}`
+    `Connecting to supervisord at ${SUPERVISORD_HOST}:${SUPERVISORD_PORT}`,
   );
   console.log(`Configuration file: ${CONFIG_FILE_PATH}`);
   console.log(
-    `Executable path: ${SUPERVISORD_EXECUTABLE_PATH || "Not configured"}`
+    `Executable path: ${SUPERVISORD_EXECUTABLE_PATH || "Not configured"}`,
   );
   console.log(
     `Authentication: ${
       SUPERVISORD_USERNAME && SUPERVISORD_PASSWORD ? "Enabled" : "Disabled"
-    }`
+    }`,
   );
   console.log(
-    `Available tools: 16 tools including create/delete programs, signal sending, supervisor info, and enhanced logging`
+    `Available tools: 16 tools including create/delete programs, signal sending, supervisor info, and enhanced logging`,
   );
   console.log(`Logs will be output to console in Apache combined format`);
 });

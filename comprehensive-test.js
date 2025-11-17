@@ -155,12 +155,14 @@ async function comprehensiveMcpTest() {
         }
       }
     } catch (error) {
-      console.error("⚠️ Signal sending test (may fail on Windows):", error.message);
+      console.error(
+        "⚠️ Signal sending test (may fail on Windows):",
+        error.message,
+      );
     }
 
     await client.close();
     console.log("\n🎉 Comprehensive MCP test completed!");
-
   } catch (error) {
     console.error("❌ Test failed:", error.message);
     console.error("Stack:", error.stack);
