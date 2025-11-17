@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "supervisord": {
+      "type": "http",
+      "url": "http://localhost:30000/mcp",
+      "headers": {
+        "Authorization":"Basic YjE4YjkzNWMtMTU1MS00YjZmLWI3MGMtNGQ2YTNlODMzYWRmOjh0bjZ5Mm84aHRoZ2d1ZzYwMGVzd2ZmenBvNWJrZQ=="
+      }
+    }
+  }
+}
