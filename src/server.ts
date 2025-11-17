@@ -1,28 +1,35 @@
-import express, { Request, Response } from 'express';
-import { randomUUID } from 'node:crypto';
-import { z } from 'zod';
-import morgan from 'morgan';
-import { spawn, exec } from 'child_process';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import cors from 'cors';
+import express, { Request, Response } from "express";
+import { randomUUID } from "node:crypto";
+import { z } from "zod";
+import morgan from "morgan";
+import { spawn, exec } from "child_process";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import cors from "cors";
 import {
   CallToolResult,
-  isInitializeRequest
-} from '@modelcontextprotocol/sdk/types.js';
-import { InMemoryEventStore } from '@modelcontextprotocol/sdk/examples/shared/inMemoryEventStore.js';
-import { SupervisordClient, ProcessInfo } from './supervisordClient.js';
-import { LogReader, LogReadOptions } from './logReader.js';
-import { ConfigManager, ConfigSection, SupervisordConfig } from './configManager.js';
+  isInitializeRequest,
+} from "@modelcontextprotocol/sdk/types.js";
+import { InMemoryEventStore } from "@modelcontextprotocol/sdk/examples/shared/inMemoryEventStore.js";
+import { SupervisordClient, ProcessInfo } from "./supervisordClient.js";
+import { LogReader, LogReadOptions } from "./logReader.js";
+import {
+  ConfigManager,
+  ConfigSection,
+  SupervisordConfig,
+} from "./configManager.js";
 
 // 环境配置
-const SUPERVISORD_HOST = process.env.SUPERVISORD_HOST || '127.0.0.1';
-const SUPERVISORD_PORT = process.env.SUPERVISORD_PORT || '9001';
+const SUPERVISORD_HOST = process.env.SUPERVISORD_HOST || "127.0.0.1";
+const SUPERVISORD_PORT = process.env.SUPERVISORD_PORT || "9001";
 const SUPERVISORD_USERNAME = process.env.SUPERVISORD_USERNAME;
 const SUPERVISORD_PASSWORD = process.env.SUPERVISORD_PASSWORD;
 const SUPERVISORD_EXECUTABLE_PATH = process.env.SUPERVISORD_EXECUTABLE_PATH; // supervisord 可执行文件路径
-const CONFIG_FILE_PATH = process.env.SUPERVISORD_CONFIG_FILE || '/etc/supervisord.conf';
-const MCP_PORT = process.env.MCP_PORT ? parseInt(process.env.MCP_PORT, 10) : 3000;
+const CONFIG_FILE_PATH =
+  process.env.SUPERVISORD_CONFIG_FILE || "/etc/supervisord.conf";
+const MCP_PORT = process.env.MCP_PORT
+  ? parseInt(process.env.MCP_PORT, 10)
+  : 3000;
 
 // 创建配置管理器
 const configManager = new ConfigManager(CONFIG_FILE_PATH);
@@ -30,26 +37,31 @@ const configManager = new ConfigManager(CONFIG_FILE_PATH);
 // 基本 HTTP 身份验证中间件
 const basicAuthMiddleware = (req: Request, res: Response, next: Function) => {
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Basic ')) {
-    res.setHeader('WWW-Authenticate', 'Basic realm="MCP Server"');
-    res.status(401).json({ error: '身份验证失败' });
+  if (!authHeader || !authHeader.startsWith("Basic ")) {
+    res.setHeader("WWW-Authenticate", 'Basic realm="MCP Server"');
+    res.status(401).json({ error: "身份验证失败" });
     return;
   }
 
   try {
-    const base64Credentials = authHeader.split(' ')[1];
-    const credentials = Buffer.from(base64Credentials, 'base64').toString('utf8');
-    const [username, password] = credentials.split(':');
+    const base64Credentials = authHeader.split(" ")[1];
+    const credentials = Buffer.from(base64Credentials, "base64").toString(
+      "utf8"
+    );
+    const [username, password] = credentials.split(":");
 
-    if (username === SUPERVISORD_USERNAME && password === SUPERVISORD_PASSWORD) {
+    if (
+      username === SUPERVISORD_USERNAME &&
+      password === SUPERVISORD_PASSWORD
+    ) {
       next();
     } else {
-      res.setHeader('WWW-Authenticate', 'Basic realm="MCP Server"');
-      res.status(401).json({ error: '用户名或密码错误' });
+      res.setHeader("WWW-Authenticate", 'Basic realm="MCP Server"');
+      res.status(401).json({ error: "用户名或密码错误" });
     }
   } catch (error) {
-    res.setHeader('WWW-Authenticate', 'Basic realm="MCP Server"');
-    res.status(401).json({ error: '身份验证格式错误' });
+    res.setHeader("WWW-Authenticate", 'Basic realm="MCP Server"');
+    res.status(401).json({ error: "身份验证格式错误" });
   }
 };
 
@@ -60,11 +72,13 @@ const supervisordUtils = {
     try {
       const configContent = configManager.readConfig();
       const pidFileMatch = configContent.match(/pidfile\s*=\s*(.+)/);
-      const pidFilePath = pidFileMatch ? pidFileMatch[1].trim() : 'supervisord.pid';
-      
-      const fs = await import('fs');
+      const pidFilePath = pidFileMatch
+        ? pidFileMatch[1].trim()
+        : "supervisord.pid";
+
+      const fs = await import("fs");
       if (fs.existsSync(pidFilePath)) {
-        return fs.readFileSync(pidFilePath, 'utf8').trim();
+        return fs.readFileSync(pidFilePath, "utf8").trim();
       }
       return null;
     } catch (error) {
@@ -79,14 +93,14 @@ const supervisordUtils = {
     }
 
     return new Promise((resolve) => {
-      const process = spawn(SUPERVISORD_EXECUTABLE_PATH, ['version']);
-      let output = '';
-      
-      process.stdout.on('data', (data) => {
+      const process = spawn(SUPERVISORD_EXECUTABLE_PATH, ["version"]);
+      let output = "";
+
+      process.stdout.on("data", (data) => {
         output += data.toString();
       });
 
-      process.on('close', (code) => {
+      process.on("close", (code) => {
         if (code === 0) {
           resolve(output.trim());
         } else {
@@ -94,7 +108,7 @@ const supervisordUtils = {
         }
       });
 
-      process.on('error', () => {
+      process.on("error", () => {
         resolve(null);
       });
     });
@@ -107,18 +121,18 @@ const supervisordUtils = {
     }
 
     return new Promise((resolve) => {
-      const args = ['ctl', 'signal', signal, programName];
+      const args = ["ctl", "signal", signal, programName];
       if (CONFIG_FILE_PATH) {
-        args.unshift('/c', `"${CONFIG_FILE_PATH}"`);
+        args.unshift("/c", `"${CONFIG_FILE_PATH}"`);
       }
-      
+
       const process = spawn(SUPERVISORD_EXECUTABLE_PATH, args);
-      
-      process.on('close', (code) => {
+
+      process.on("close", (code) => {
         resolve(code === 0);
       });
 
-      process.on('error', () => {
+      process.on("error", () => {
         resolve(false);
       });
     });
@@ -130,13 +144,13 @@ const supervisordUtils = {
       const configContent = configManager.readConfig();
       const logFileMatch = configContent.match(/logfile\s*=\s*(.+)/);
       if (logFileMatch) {
-        return logFileMatch[1].trim().split(',')[0]; // 只取第一个路径
+        return logFileMatch[1].trim().split(",")[0]; // 只取第一个路径
       }
-      return 'logs/supervisord.log'; // 默认路径
+      return "logs/supervisord.log"; // 默认路径
     } catch (error) {
-      return 'logs/supervisord.log';
+      return "logs/supervisord.log";
     }
-  }
+  },
 };
 
 // 创建 supervisord 客户端
@@ -150,51 +164,56 @@ const supervisordClient = new SupervisordClient(
 const createServer = () => {
   const server = new McpServer(
     {
-      name: 'supervisor-mcp-server',
-      version: '1.0.0',
-      websiteUrl: 'https://github.com/modelcontextprotocol/supervisor-mcp-server'
+      name: "supervisor-mcp-server",
+      version: "1.0.0",
+      websiteUrl:
+        "https://github.com/modelcontextprotocol/supervisor-mcp-server",
     },
     { capabilities: { logging: {} } }
   );
 
   // 1. 列出所有程序
   server.registerTool(
-    'list_programs',
+    "list_programs",
     {
-      title: 'List Programs',
-      description: 'List all managed programs and their current status',
-      inputSchema: {}
+      title: "List Programs",
+      description: "List all managed programs and their current status",
+      inputSchema: {},
     },
     async (): Promise<CallToolResult> => {
       try {
         const programs = await supervisordClient.getAllProcessInfo();
-        
-        const content = programs.map(prog => 
-          `Program: ${prog.name}\n` +
-          `  Status: ${prog.statename}\n` +
-          `  PID: ${prog.pid}\n` +
-          `  Description: ${prog.description}\n` +
-          `  Group: ${prog.group}\n` +
-          `  Started: ${new Date(prog.start * 1000).toISOString()}\n` +
-          `  Log File: ${prog.logfile}\n`
-        ).join('\n');
+
+        const content = programs
+          .map(
+            (prog) =>
+              `Program: ${prog.name}\n` +
+              `  Status: ${prog.statename}\n` +
+              `  PID: ${prog.pid}\n` +
+              `  Description: ${prog.description}\n` +
+              `  Group: ${prog.group}\n` +
+              `  Started: ${new Date(prog.start * 1000).toISOString()}\n` +
+              `  Log File: ${prog.logfile}\n`
+          )
+          .join("\n");
 
         return {
           content: [
             {
-              type: 'text',
-              text: `Found ${programs.length} programs:\n\n${content}`
-            }
-          ]
+              type: "text",
+              text: `Found ${programs.length} programs:\n\n${content}`,
+            },
+          ],
         };
       } catch (error: any) {
         return {
+          isError: true,
           content: [
             {
-              type: 'text',
-              text: `Error listing programs: ${error.message}`
-            }
-          ]
+              type: "text",
+              text: `Error listing programs: ${error.message}`,
+            },
+          ],
         };
       }
     }
@@ -202,34 +221,37 @@ const createServer = () => {
 
   // 2. 启动单个程序
   server.registerTool(
-    'start_program',
+    "start_program",
     {
-      title: 'Start Program',
-      description: 'Start a single program by name',
+      title: "Start Program",
+      description: "Start a single program by name",
       inputSchema: {
-        name: z.string().describe('Name of the program to start')
-      }
+        name: z.string().describe("Name of the program to start"),
+      },
     },
     async ({ name }): Promise<CallToolResult> => {
       try {
         const result = await supervisordClient.startProgram(name);
-        
+
         return {
           content: [
             {
-              type: 'text',
-              text: `Start program '${name}': ${result.success ? 'Success' : 'Failed'}`
-            }
-          ]
+              type: "text",
+              text: `Start program '${name}': ${
+                result.success ? "Success" : "Failed"
+              }`,
+            },
+          ],
         };
       } catch (error: any) {
         return {
+          isError: true,
           content: [
             {
-              type: 'text',
-              text: `Error starting program '${name}': ${error.message}`
-            }
-          ]
+              type: "text",
+              text: `Error starting program '${name}': ${error.message}`,
+            },
+          ],
         };
       }
     }
@@ -237,34 +259,37 @@ const createServer = () => {
 
   // 3. 停止单个程序
   server.registerTool(
-    'stop_program',
+    "stop_program",
     {
-      title: 'Stop Program',
-      description: 'Stop a single program by name',
+      title: "Stop Program",
+      description: "Stop a single program by name",
       inputSchema: {
-        name: z.string().describe('Name of the program to stop')
-      }
+        name: z.string().describe("Name of the program to stop"),
+      },
     },
     async ({ name }): Promise<CallToolResult> => {
       try {
         const result = await supervisordClient.stopProgram(name);
-        
+
         return {
           content: [
             {
-              type: 'text',
-              text: `Stop program '${name}': ${result.success ? 'Success' : 'Failed'}`
-            }
-          ]
+              type: "text",
+              text: `Stop program '${name}': ${
+                result.success ? "Success" : "Failed"
+              }`,
+            },
+          ],
         };
       } catch (error: any) {
         return {
+          isError: true,
           content: [
             {
-              type: 'text',
-              text: `Error stopping program '${name}': ${error.message}`
-            }
-          ]
+              type: "text",
+              text: `Error stopping program '${name}': ${error.message}`,
+            },
+          ],
         };
       }
     }
@@ -272,34 +297,38 @@ const createServer = () => {
 
   // 4. 批量启动程序
   server.registerTool(
-    'start_programs',
+    "start_programs",
     {
-      title: 'Start Multiple Programs',
-      description: 'Start multiple programs by providing a list of program names',
+      title: "Start Multiple Programs",
+      description:
+        "Start multiple programs by providing a list of program names",
       inputSchema: {
-        names: z.array(z.string()).describe('Array of program names to start')
-      }
+        names: z.array(z.string()).describe("Array of program names to start"),
+      },
     },
     async ({ names }): Promise<CallToolResult> => {
       try {
         const result = await supervisordClient.startPrograms(names);
-        
+
         return {
           content: [
             {
-              type: 'text',
-              text: `Batch start programs [${names.join(', ')}]: ${result.message}`
-            }
-          ]
+              type: "text",
+              text: `Batch start programs [${names.join(", ")}]: ${
+                result.message
+              }`,
+            },
+          ],
         };
       } catch (error: any) {
         return {
+          isError: true,
           content: [
             {
-              type: 'text',
-              text: `Error starting programs: ${error.message}`
-            }
-          ]
+              type: "text",
+              text: `Error starting programs: ${error.message}`,
+            },
+          ],
         };
       }
     }
@@ -307,34 +336,38 @@ const createServer = () => {
 
   // 5. 批量停止程序
   server.registerTool(
-    'stop_programs',
+    "stop_programs",
     {
-      title: 'Stop Multiple Programs',
-      description: 'Stop multiple programs by providing a list of program names',
+      title: "Stop Multiple Programs",
+      description:
+        "Stop multiple programs by providing a list of program names",
       inputSchema: {
-        names: z.array(z.string()).describe('Array of program names to stop')
-      }
+        names: z.array(z.string()).describe("Array of program names to stop"),
+      },
     },
     async ({ names }): Promise<CallToolResult> => {
       try {
         const result = await supervisordClient.stopPrograms(names);
-        
+
         return {
           content: [
             {
-              type: 'text',
-              text: `Batch stop programs [${names.join(', ')}]: ${result.message}`
-            }
-          ]
+              type: "text",
+              text: `Batch stop programs [${names.join(", ")}]: ${
+                result.message
+              }`,
+            },
+          ],
         };
       } catch (error: any) {
         return {
+          isError: true,
           content: [
             {
-              type: 'text',
-              text: `Error stopping programs: ${error.message}`
-            }
-          ]
+              type: "text",
+              text: `Error stopping programs: ${error.message}`,
+            },
+          ],
         };
       }
     }
@@ -342,31 +375,51 @@ const createServer = () => {
 
   // 6. 读取程序日志
   server.registerTool(
-    'read_log',
+    "read_log",
     {
-      title: 'Read Program Log',
-      description: 'Read stdout or stderr log of a program with optional pagination',
+      title: "Read Program Log",
+      description:
+        "Read stdout or stderr log of a program with optional pagination",
       inputSchema: {
-        name: z.string().describe('Name of the program'),
-        type: z.enum(['stdout', 'stderr']).default('stdout').describe('Log type'),
-        offset: z.number().optional().describe('Byte offset to start reading from'),
-        length: z.number().optional().describe('Number of bytes to read'),
-        lines: z.number().optional().describe('Number of lines to read (for tail reading)'),
-        tail: z.boolean().default(false).describe('Read from end of file')
-      }
+        name: z.string().describe("Name of the program"),
+        type: z
+          .enum(["stdout", "stderr"])
+          .default("stdout")
+          .describe("Log type"),
+        offset: z
+          .number()
+          .optional()
+          .describe("Byte offset to start reading from"),
+        length: z.number().optional().describe("Number of bytes to read"),
+        lines: z
+          .number()
+          .optional()
+          .describe("Number of lines to read (for tail reading)"),
+        tail: z.boolean().default(false).describe("Read from end of file"),
+      },
     },
-    async ({ name, type = 'stdout', offset, length, lines, tail }): Promise<CallToolResult> => {
+    async ({
+      name,
+      type = "stdout",
+      offset,
+      length,
+      lines,
+      tail,
+    }): Promise<CallToolResult> => {
       try {
-        const logPath = await supervisordClient.getProgramLogPath(name, type as 'stdout' | 'stderr' | undefined);
-        
+        const logPath = await supervisordClient.getProgramLogPath(
+          name,
+          type as "stdout" | "stderr" | undefined
+        );
+
         if (!logPath) {
           return {
             content: [
               {
-                type: 'text',
-                text: `Log file not found for program '${name}' (${type})`
-              }
-            ]
+                type: "text",
+                text: `Log file not found for program '${name}' (${type})`,
+              },
+            ],
           };
         }
 
@@ -374,39 +427,41 @@ const createServer = () => {
           return {
             content: [
               {
-                type: 'text',
-                text: `Cannot read log file: ${logPath}`
-              }
-            ]
+                type: "text",
+                text: `Cannot read log file: ${logPath}`,
+              },
+            ],
           };
         }
 
         const options: LogReadOptions = { offset, length, lines, tail };
         const logContent = await LogReader.readLog(logPath, options);
-        
+
         const fileSize = LogReader.getFileSize(logPath);
-        
+
         return {
           content: [
             {
-              type: 'text',
-              text: `Log content from ${logPath}:\n` +
-                    `File size: ${fileSize} bytes\n` +
-                    `Read: ${logContent.readSize} bytes\n` +
-                    `Offset: ${logContent.offset}\n` +
-                    `Truncated: ${logContent.isTruncated ? 'Yes' : 'No'}\n\n` +
-                    logContent.content
-            }
-          ]
+              type: "text",
+              text:
+                `Log content from ${logPath}:\n` +
+                `File size: ${fileSize} bytes\n` +
+                `Read: ${logContent.readSize} bytes\n` +
+                `Offset: ${logContent.offset}\n` +
+                `Truncated: ${logContent.isTruncated ? "Yes" : "No"}\n\n` +
+                logContent.content,
+            },
+          ],
         };
       } catch (error: any) {
         return {
+          isError: true,
           content: [
             {
-              type: 'text',
-              text: `Error reading log for program '${name}': ${error.message}`
-            }
-          ]
+              type: "text",
+              text: `Error reading log for program '${name}': ${error.message}`,
+            },
+          ],
         };
       }
     }
@@ -414,13 +469,17 @@ const createServer = () => {
 
   // 7. 获取配置文件
   server.registerTool(
-    'get_config',
+    "get_config",
     {
-      title: 'Get Configuration',
-      description: 'Get the current supervisord configuration or a specific section',
+      title: "Get Configuration",
+      description:
+        "Get the current supervisord configuration or a specific section",
       inputSchema: {
-        section: z.string().optional().describe('Section name to get (optional)')
-      }
+        section: z
+          .string()
+          .optional()
+          .describe("Section name to get (optional)"),
+      },
     },
     async ({ section }): Promise<CallToolResult> => {
       try {
@@ -430,42 +489,44 @@ const createServer = () => {
             return {
               content: [
                 {
-                  type: 'text',
-                  text: `Section '${section}' not found`
-                }
-              ]
+                  type: "text",
+                  text: `Section '${section}' not found`,
+                },
+              ],
             };
           }
           return {
             content: [
               {
-                type: 'text',
-                text: `[${section}]\n` + 
-                      Object.entries(sectionConfig)
-                        .map(([key, value]) => `${key}=${value}`)
-                        .join('\n')
-              }
-            ]
+                type: "text",
+                text:
+                  `[${section}]\n` +
+                  Object.entries(sectionConfig)
+                    .map(([key, value]) => `${key}=${value}`)
+                    .join("\n"),
+              },
+            ],
           };
         } else {
           const configContent = configManager.readConfig();
           return {
             content: [
               {
-                type: 'text',
-                text: `Current supervisord configuration:\n\n${configContent}`
-              }
-            ]
+                type: "text",
+                text: `Current supervisord configuration:\n\n${configContent}`,
+              },
+            ],
           };
         }
       } catch (error: any) {
         return {
+          isError: true,
           content: [
             {
-              type: 'text',
-              text: `Error getting configuration: ${error.message}`
-            }
-          ]
+              type: "text",
+              text: `Error getting configuration: ${error.message}`,
+            },
+          ],
         };
       }
     }
@@ -473,36 +534,39 @@ const createServer = () => {
 
   // 8. 更新配置
   server.registerTool(
-    'update_config',
+    "update_config",
     {
-      title: 'Update Configuration',
-      description: 'Update a specific configuration value',
+      title: "Update Configuration",
+      description: "Update a specific configuration value",
       inputSchema: {
-        section: z.string().describe('Section name'),
-        key: z.string().describe('Configuration key'),
-        value: z.union([z.string(), z.number(), z.boolean()]).describe('Configuration value')
-      }
+        section: z.string().describe("Section name"),
+        key: z.string().describe("Configuration key"),
+        value: z
+          .union([z.string(), z.number(), z.boolean()])
+          .describe("Configuration value"),
+      },
     },
     async ({ section, key, value }): Promise<CallToolResult> => {
       try {
         const result = configManager.updateConfig(section, key, value);
-        
+
         return {
           content: [
             {
-              type: 'text',
-              text: `Update configuration: ${result.message}`
-            }
-          ]
+              type: "text",
+              text: `Update configuration: ${result.message}`,
+            },
+          ],
         };
       } catch (error: any) {
         return {
+          isError: true,
           content: [
             {
-              type: 'text',
-              text: `Error updating configuration: ${error.message}`
-            }
-          ]
+              type: "text",
+              text: `Error updating configuration: ${error.message}`,
+            },
+          ],
         };
       }
     }
@@ -510,32 +574,35 @@ const createServer = () => {
 
   // 9. 重载 supervisord
   server.registerTool(
-    'reload_supervisor',
+    "reload_supervisor",
     {
-      title: 'Reload Supervisor Configuration',
-      description: 'Reload supervisord configuration without restarting',
-      inputSchema: {}
+      title: "Reload Supervisor Configuration",
+      description: "Reload supervisord configuration without restarting",
+      inputSchema: {},
     },
     async (): Promise<CallToolResult> => {
       try {
         const result = await supervisordClient.reload();
-        
+
         return {
           content: [
             {
-              type: 'text',
-              text: `Reload configuration: ${result.success ? 'Success' : 'Failed'}`
-            }
-          ]
+              type: "text",
+              text: `Reload configuration: ${
+                result.success ? "Success" : "Failed"
+              }`,
+            },
+          ],
         };
       } catch (error: any) {
         return {
+          isError: true,
           content: [
             {
-              type: 'text',
-              text: `Error reloading configuration: ${error.message}`
-            }
-          ]
+              type: "text",
+              text: `Error reloading configuration: ${error.message}`,
+            },
+          ],
         };
       }
     }
@@ -543,40 +610,44 @@ const createServer = () => {
 
   // 10. 程序状态检查
   server.registerTool(
-    'get_program_status',
+    "get_program_status",
     {
-      title: 'Get Program Status',
-      description: 'Get detailed status information for a specific program',
+      title: "Get Program Status",
+      description: "Get detailed status information for a specific program",
       inputSchema: {
-        name: z.string().describe('Name of the program')
-      }
+        name: z.string().describe("Name of the program"),
+      },
     },
     async ({ name }): Promise<CallToolResult> => {
       try {
         const programs = await supervisordClient.getAllProcessInfo();
-        const program = programs.find(p => p.name === name);
-        
+        const program = programs.find((p) => p.name === name);
+
         if (!program) {
           return {
             content: [
               {
-                type: 'text',
-                text: `Program '${name}' not found`
-              }
-            ]
+                type: "text",
+                text: `Program '${name}' not found`,
+              },
+            ],
           };
         }
 
-        const status = 
+        const status =
           `Program: ${program.name}\n` +
           `Status: ${program.statename}\n` +
           `PID: ${program.pid}\n` +
           `Group: ${program.group}\n` +
           `Description: ${program.description}\n` +
           `Started: ${new Date(program.start * 1000).toISOString()}\n` +
-          `Stopped: ${program.stop > 0 ? new Date(program.stop * 1000).toISOString() : 'N/A'}\n` +
+          `Stopped: ${
+            program.stop > 0
+              ? new Date(program.stop * 1000).toISOString()
+              : "N/A"
+          }\n` +
           `Exit Status: ${program.exitstatus}\n` +
-          `Spawn Error: ${program.spawnerr || 'None'}\n` +
+          `Spawn Error: ${program.spawnerr || "None"}\n` +
           `Log File: ${program.logfile}\n` +
           `Stdout Log: ${program.stdout_logfile}\n` +
           `Stderr Log: ${program.stderr_logfile}`;
@@ -584,19 +655,20 @@ const createServer = () => {
         return {
           content: [
             {
-              type: 'text',
-              text: status
-            }
-          ]
+              type: "text",
+              text: status,
+            },
+          ],
         };
       } catch (error: any) {
         return {
+          isError: true,
           content: [
             {
-              type: 'text',
-              text: `Error getting program status: ${error.message}`
-            }
-          ]
+              type: "text",
+              text: `Error getting program status: ${error.message}`,
+            },
+          ],
         };
       }
     }
@@ -604,43 +676,46 @@ const createServer = () => {
 
   // 11. 获取 supervisord PID 和版本信息
   server.registerTool(
-    'get_supervisor_info',
+    "get_supervisor_info",
     {
-      title: 'Get Supervisor Information',
-      description: 'Get supervisord PID, version, and system information',
-      inputSchema: {}
+      title: "Get Supervisor Information",
+      description: "Get supervisord PID, version, and system information",
+      inputSchema: {},
     },
     async (): Promise<CallToolResult> => {
       try {
         const pid = await supervisordUtils.getSupervisordPid();
         const version = await supervisordUtils.getSupervisordVersion();
         const logPath = supervisordUtils.getSupervisordLogPath();
-        
-        const info = 
+
+        const info =
           `Supervisor System Information:\n` +
-          `PID: ${pid || 'Unknown'}\n` +
-          `Version: ${version || 'Unknown'}\n` +
-          `Executable Path: ${SUPERVISORD_EXECUTABLE_PATH || 'Not configured'}\n` +
+          `PID: ${pid || "Unknown"}\n` +
+          `Version: ${version || "Unknown"}\n` +
+          `Executable Path: ${
+            SUPERVISORD_EXECUTABLE_PATH || "Not configured"
+          }\n` +
           `Config File: ${CONFIG_FILE_PATH}\n` +
-          `Log File: ${logPath || 'Unknown'}\n` +
+          `Log File: ${logPath || "Unknown"}\n` +
           `HTTP Server: ${SUPERVISORD_HOST}:${SUPERVISORD_PORT}`;
 
         return {
           content: [
             {
-              type: 'text',
-              text: info
-            }
-          ]
+              type: "text",
+              text: info,
+            },
+          ],
         };
       } catch (error: any) {
         return {
+          isError: true,
           content: [
             {
-              type: 'text',
-              text: `Error getting supervisor information: ${error.message}`
-            }
-          ]
+              type: "text",
+              text: `Error getting supervisor information: ${error.message}`,
+            },
+          ],
         };
       }
     }
@@ -648,29 +723,35 @@ const createServer = () => {
 
   // 12. 查看 supervisord 本身日志
   server.registerTool(
-    'get_supervisor_log',
+    "get_supervisor_log",
     {
-      title: 'Get Supervisor Log',
-      description: 'Read supervisord daemon log with optional pagination',
+      title: "Get Supervisor Log",
+      description: "Read supervisord daemon log with optional pagination",
       inputSchema: {
-        offset: z.number().optional().describe('Byte offset to start reading from'),
-        length: z.number().optional().describe('Number of bytes to read'),
-        lines: z.number().optional().describe('Number of lines to read (for tail reading)'),
-        tail: z.boolean().default(false).describe('Read from end of file')
-      }
+        offset: z
+          .number()
+          .optional()
+          .describe("Byte offset to start reading from"),
+        length: z.number().optional().describe("Number of bytes to read"),
+        lines: z
+          .number()
+          .optional()
+          .describe("Number of lines to read (for tail reading)"),
+        tail: z.boolean().default(false).describe("Read from end of file"),
+      },
     },
     async ({ offset, length, lines, tail }): Promise<CallToolResult> => {
       try {
         const logPath = supervisordUtils.getSupervisordLogPath();
-        
+
         if (!logPath) {
           return {
             content: [
               {
-                type: 'text',
-                text: 'Supervisor log file path not found in configuration'
-              }
-            ]
+                type: "text",
+                text: "Supervisor log file path not found in configuration",
+              },
+            ],
           };
         }
 
@@ -678,39 +759,41 @@ const createServer = () => {
           return {
             content: [
               {
-                type: 'text',
-                text: `Cannot read supervisor log file: ${logPath}`
-              }
-            ]
+                type: "text",
+                text: `Cannot read supervisor log file: ${logPath}`,
+              },
+            ],
           };
         }
 
         const options: LogReadOptions = { offset, length, lines, tail };
         const logContent = await LogReader.readLog(logPath, options);
-        
+
         const fileSize = LogReader.getFileSize(logPath);
-        
+
         return {
           content: [
             {
-              type: 'text',
-              text: `Supervisor Log Content from ${logPath}:\n` +
-                    `File size: ${fileSize} bytes\n` +
-                    `Read: ${logContent.readSize} bytes\n` +
-                    `Offset: ${logContent.offset}\n` +
-                    `Truncated: ${logContent.isTruncated ? 'Yes' : 'No'}\n\n` +
-                    logContent.content
-            }
-          ]
+              type: "text",
+              text:
+                `Supervisor Log Content from ${logPath}:\n` +
+                `File size: ${fileSize} bytes\n` +
+                `Read: ${logContent.readSize} bytes\n` +
+                `Offset: ${logContent.offset}\n` +
+                `Truncated: ${logContent.isTruncated ? "Yes" : "No"}\n\n` +
+                logContent.content,
+            },
+          ],
         };
       } catch (error: any) {
         return {
+          isError: true,
           content: [
             {
-              type: 'text',
-              text: `Error reading supervisor log: ${error.message}`
-            }
-          ]
+              type: "text",
+              text: `Error reading supervisor log: ${error.message}`,
+            },
+          ],
         };
       }
     }
@@ -718,14 +801,17 @@ const createServer = () => {
 
   // 13. 发送信号给程序
   server.registerTool(
-    'send_signal',
+    "send_signal",
     {
-      title: 'Send Signal to Program',
-      description: 'Send Unix signal to a specific program (e.g., SIGHUP, SIGTERM, SIGKILL)',
+      title: "Send Signal to Program",
+      description:
+        "Send Unix signal to a specific program (e.g., SIGHUP, SIGTERM, SIGKILL)",
       inputSchema: {
-        name: z.string().describe('Name of the program to send signal to'),
-        signal: z.string().describe('Signal to send (e.g., SIGHUP, SIGTERM, SIGKILL, USR1)')
-      }
+        name: z.string().describe("Name of the program to send signal to"),
+        signal: z
+          .string()
+          .describe("Signal to send (e.g., SIGHUP, SIGTERM, SIGKILL, USR1)"),
+      },
     },
     async ({ name, signal }): Promise<CallToolResult> => {
       try {
@@ -733,31 +819,34 @@ const createServer = () => {
           return {
             content: [
               {
-                type: 'text',
-                text: `Error: SUPERVISORD_EXECUTABLE_PATH environment variable not configured`
-              }
-            ]
+                type: "text",
+                text: `Error: SUPERVISORD_EXECUTABLE_PATH environment variable not configured`,
+              },
+            ],
           };
         }
 
         const success = await supervisordUtils.sendSignal(name, signal);
-        
+
         return {
           content: [
             {
-              type: 'text',
-              text: `Send signal '${signal}' to program '${name}': ${success ? 'Success' : 'Failed'}`
-            }
-          ]
+              type: "text",
+              text: `Send signal '${signal}' to program '${name}': ${
+                success ? "Success" : "Failed"
+              }`,
+            },
+          ],
         };
       } catch (error: any) {
         return {
+          isError: true,
           content: [
             {
-              type: 'text',
-              text: `Error sending signal to program '${name}': ${error.message}`
-            }
-          ]
+              type: "text",
+              text: `Error sending signal to program '${name}': ${error.message}`,
+            },
+          ],
         };
       }
     }
@@ -765,27 +854,28 @@ const createServer = () => {
 
   // 14. 获取单个程序详细信息
   server.registerTool(
-    'get_program_info',
+    "get_program_info",
     {
-      title: 'Get Program Information',
-      description: 'Get detailed information about a specific program including PID and status',
+      title: "Get Program Information",
+      description:
+        "Get detailed information about a specific program including PID and status",
       inputSchema: {
-        name: z.string().describe('Name of the program')
-      }
+        name: z.string().describe("Name of the program"),
+      },
     },
     async ({ name }): Promise<CallToolResult> => {
       try {
         const programs = await supervisordClient.getAllProcessInfo();
-        const program = programs.find(p => p.name === name);
-        
+        const program = programs.find((p) => p.name === name);
+
         if (!program) {
           return {
             content: [
               {
-                type: 'text',
-                text: `Program '${name}' not found`
-              }
-            ]
+                type: "text",
+                text: `Program '${name}' not found`,
+              },
+            ],
           };
         }
 
@@ -795,9 +885,11 @@ const createServer = () => {
         const hours = Math.floor(runtime / 3600);
         const minutes = Math.floor((runtime % 3600) / 60);
         const seconds = runtime % 60;
-        const uptime = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        const uptime = `${hours}:${minutes
+          .toString()
+          .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 
-        const info = 
+        const info =
           `Program: ${program.name}\n` +
           `Status: ${program.statename}\n` +
           `PID: ${program.pid}\n` +
@@ -806,25 +898,26 @@ const createServer = () => {
           `Started: ${new Date(program.start * 1000).toISOString()}\n` +
           `Description: ${program.description}\n` +
           `Log File: ${program.logfile}\n` +
-          `Stdout Log: ${program.stdout_logfile || 'Not configured'}\n` +
-          `Stderr Log: ${program.stderr_logfile || 'Not configured'}`;
+          `Stdout Log: ${program.stdout_logfile || "Not configured"}\n` +
+          `Stderr Log: ${program.stderr_logfile || "Not configured"}`;
 
         return {
           content: [
             {
-              type: 'text',
-              text: info
-            }
-          ]
+              type: "text",
+              text: info,
+            },
+          ],
         };
       } catch (error: any) {
         return {
+          isError: true,
           content: [
             {
-              type: 'text',
-              text: `Error getting program information: ${error.message}`
-            }
-          ]
+              type: "text",
+              text: `Error getting program information: ${error.message}`,
+            },
+          ],
         };
       }
     }
@@ -837,14 +930,14 @@ const createServer = () => {
 const app = express();
 
 // 配置 Morgan HTTP 日志中间件
-app.use(morgan('combined')); // 使用 Apache combined 格式记录所有请求日志
+app.use(morgan("combined")); // 使用 Apache combined 格式记录所有请求日志
 
 // 配置基本 HTTP 身份验证中间件
 // 对于 MCP 请求，不应用身份验证（由 MCP 协议处理）
 // 对于健康检查和其他端点，可以选择性应用身份验证
 app.use((req, res, next) => {
   // 跳过 MCP 端点的身份验证
-  if (req.path.startsWith('/mcp')) {
+  if (req.path.startsWith("/mcp")) {
     return next();
   }
   // 可以在这里为其他端点添加身份验证
@@ -856,8 +949,8 @@ app.use(express.json());
 // 配置 CORS
 app.use(
   cors({
-    origin: '*', // Allow all origins for demo purposes
-    exposedHeaders: ['Mcp-Session-Id']
+    origin: "*", // Allow all origins for demo purposes
+    exposedHeaders: ["Mcp-Session-Id"],
   })
 );
 
@@ -866,17 +959,17 @@ const transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
 
 // MCP 请求处理
 const mcpPostHandler = async (req: Request, res: Response) => {
-  const sessionId = req.headers['mcp-session-id'] as string | undefined;
-  
+  const sessionId = req.headers["mcp-session-id"] as string | undefined;
+
   if (sessionId) {
     console.log(`Received MCP request for session: ${sessionId}`);
   } else {
-    console.log('Request body:', req.body);
+    console.log("Request body:", req.body);
   }
 
   try {
     let transport: StreamableHTTPServerTransport;
-    
+
     if (sessionId && transports[sessionId]) {
       // 重用现有传输
       transport = transports[sessionId];
@@ -889,14 +982,16 @@ const mcpPostHandler = async (req: Request, res: Response) => {
         onsessioninitialized: (sid: string) => {
           console.log(`Session initialized with ID: ${sid}`);
           transports[sid] = transport;
-        }
+        },
       });
 
       // 设置传输关闭时的清理
       transport.onclose = () => {
         const sid = transport.sessionId;
         if (sid && transports[sid]) {
-          console.log(`Transport closed for session ${sid}, removing from transports map`);
+          console.log(
+            `Transport closed for session ${sid}, removing from transports map`
+          );
           delete transports[sid];
         }
       };
@@ -910,12 +1005,12 @@ const mcpPostHandler = async (req: Request, res: Response) => {
     } else {
       // 无效请求
       res.status(400).json({
-        jsonrpc: '2.0',
+        jsonrpc: "2.0",
         error: {
           code: -32000,
-          message: 'Bad Request: No valid session ID provided'
+          message: "Bad Request: No valid session ID provided",
         },
-        id: null
+        id: null,
       });
       return;
     }
@@ -923,15 +1018,15 @@ const mcpPostHandler = async (req: Request, res: Response) => {
     // 使用现有传输处理请求
     await transport.handleRequest(req, res, req.body);
   } catch (error) {
-    console.error('Error handling MCP request:', error);
+    console.error("Error handling MCP request:", error);
     if (!res.headersSent) {
       res.status(500).json({
-        jsonrpc: '2.0',
+        jsonrpc: "2.0",
         error: {
           code: -32603,
-          message: 'Internal server error'
+          message: "Internal server error",
         },
-        id: null
+        id: null,
       });
     }
   }
@@ -939,10 +1034,10 @@ const mcpPostHandler = async (req: Request, res: Response) => {
 
 // GET 请求处理（SSE 流）
 const mcpGetHandler = async (req: Request, res: Response) => {
-  const sessionId = req.headers['mcp-session-id'] as string | undefined;
-  
+  const sessionId = req.headers["mcp-session-id"] as string | undefined;
+
   if (!sessionId || !transports[sessionId]) {
-    res.status(400).send('Invalid or missing session ID');
+    res.status(400).send("Invalid or missing session ID");
     return;
   }
 
@@ -953,45 +1048,45 @@ const mcpGetHandler = async (req: Request, res: Response) => {
 
 // DELETE 请求处理（会话终止）
 const mcpDeleteHandler = async (req: Request, res: Response) => {
-  const sessionId = req.headers['mcp-session-id'] as string | undefined;
-  
+  const sessionId = req.headers["mcp-session-id"] as string | undefined;
+
   if (!sessionId || !transports[sessionId]) {
-    res.status(400).send('Invalid or missing session ID');
+    res.status(400).send("Invalid or missing session ID");
     return;
   }
 
   console.log(`Received session termination request for session ${sessionId}`);
-  
+
   try {
     const transport = transports[sessionId];
     await transport.handleRequest(req, res);
   } catch (error) {
-    console.error('Error handling session termination:', error);
+    console.error("Error handling session termination:", error);
     if (!res.headersSent) {
-      res.status(500).send('Error processing session termination');
+      res.status(500).send("Error processing session termination");
     }
   }
 };
 
 // 设置路由
-app.post('/mcp', mcpPostHandler);
-app.get('/mcp', mcpGetHandler);
-app.delete('/mcp', mcpDeleteHandler);
+app.post("/mcp", mcpPostHandler);
+app.get("/mcp", mcpGetHandler);
+app.delete("/mcp", mcpDeleteHandler);
 
 // 健康检查端点
-app.get('/health', async (req: Request, res: Response) => {
+app.get("/health", async (req: Request, res: Response) => {
   try {
     const isHealthy = await supervisordClient.healthCheck();
     res.json({
-      status: isHealthy ? 'healthy' : 'unhealthy',
-      supervisord: isHealthy ? 'connected' : 'disconnected',
-      timestamp: new Date().toISOString()
+      status: isHealthy ? "healthy" : "unhealthy",
+      supervisord: isHealthy ? "connected" : "disconnected",
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     res.status(500).json({
-      status: 'unhealthy',
+      status: "unhealthy",
       error: (error as Error).message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 });
@@ -999,18 +1094,30 @@ app.get('/health', async (req: Request, res: Response) => {
 // 启动服务器
 app.listen(MCP_PORT, () => {
   console.log(`Supervisor MCP Server listening on port ${MCP_PORT}`);
-  console.log(`HTTP Request Logging: Morgan middleware enabled (combined format)`);
-  console.log(`Connecting to supervisord at ${SUPERVISORD_HOST}:${SUPERVISORD_PORT}`);
+  console.log(
+    `HTTP Request Logging: Morgan middleware enabled (combined format)`
+  );
+  console.log(
+    `Connecting to supervisord at ${SUPERVISORD_HOST}:${SUPERVISORD_PORT}`
+  );
   console.log(`Configuration file: ${CONFIG_FILE_PATH}`);
-  console.log(`Executable path: ${SUPERVISORD_EXECUTABLE_PATH || 'Not configured'}`);
-  console.log(`Authentication: ${SUPERVISORD_USERNAME && SUPERVISORD_PASSWORD ? 'Enabled' : 'Disabled'}`);
-  console.log(`Available tools: 14 tools including signal sending, supervisor info, and enhanced logging`);
+  console.log(
+    `Executable path: ${SUPERVISORD_EXECUTABLE_PATH || "Not configured"}`
+  );
+  console.log(
+    `Authentication: ${
+      SUPERVISORD_USERNAME && SUPERVISORD_PASSWORD ? "Enabled" : "Disabled"
+    }`
+  );
+  console.log(
+    `Available tools: 14 tools including signal sending, supervisor info, and enhanced logging`
+  );
   console.log(`Logs will be output to console in Apache combined format`);
 });
 
 // 处理服务器关闭
-process.on('SIGINT', async () => {
-  console.log('Shutting down MCP server...');
+process.on("SIGINT", async () => {
+  console.log("Shutting down MCP server...");
 
   // 关闭所有活跃的传输
   for (const sessionId in transports) {
@@ -1022,7 +1129,7 @@ process.on('SIGINT', async () => {
       console.error(`Error closing transport for session ${sessionId}:`, error);
     }
   }
-  
-  console.log('MCP server shutdown complete');
+
+  console.log("MCP server shutdown complete");
   process.exit(0);
 });
