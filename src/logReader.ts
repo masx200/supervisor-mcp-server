@@ -1,4 +1,4 @@
-import { readFileSync, statSync } from "fs";
+import { readFileSync, statSync, openSync, readSync, closeSync } from "fs";
 import { createReadStream } from "fs";
 import { createInterface } from "readline";
 
@@ -79,13 +79,13 @@ export class LogReader {
     length: number,
   ): string {
     const buffer = Buffer.alloc(length);
-    const fileDescriptor = require("fs").openSync(filePath, "r");
+    const fileDescriptor = openSync(filePath, "r");
 
     try {
-      require("fs").readSync(fileDescriptor, buffer, 0, length, offset);
+      readSync(fileDescriptor, buffer, 0, length, offset);
       return buffer.toString("utf8");
     } finally {
-      require("fs").closeSync(fileDescriptor);
+      closeSync(fileDescriptor);
     }
   }
 
