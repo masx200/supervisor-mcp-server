@@ -21,7 +21,7 @@ const SUPERVISORD_PORT = process.env.SUPERVISORD_PORT || "9001";
 const SUPERVISORD_USERNAME = process.env.SUPERVISORD_USERNAME;
 const SUPERVISORD_PASSWORD = process.env.SUPERVISORD_PASSWORD;
 const SUPERVISORD_EXECUTABLE_PATH = process.env.SUPERVISORD_EXECUTABLE_PATH; // supervisord 可执行文件路径
-const CONFIG_FILE_PATH = process.env.SUPERVISORD_CONFIG_FILE ||
+const CONFIG_FILE_PATH = process.env.CONFIG_FILE_PATH || process.env.SUPERVISORD_CONFIG_FILE ||
   "/etc/supervisord.conf";
 /** Supervisord 运行命令所在目录（用于查找日志文件） */
 const SUPERVISORD_COMMAND_DIR = process.env.SUPERVISORD_COMMAND_DIR ||
