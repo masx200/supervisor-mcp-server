@@ -35,10 +35,12 @@ export class SupervisordClient {
     baseURL: string = "http://127.0.0.1:9001",
     username?: string,
     password?: string,
-    commandDir?: string,
+    commandDir?: string
   ) {
     this.baseURL = baseURL;
-    this.commandDir = commandDir || process.env.SUPERVISORD_COMMAND_DIR ||
+    this.commandDir =
+      commandDir ||
+      process.env.SUPERVISORD_COMMAND_DIR ||
       "/var/log/supervisor";
 
     const auth = username && password ? { username, password } : undefined;
@@ -63,7 +65,7 @@ export class SupervisordClient {
     } catch (error: any) {
       if (error.response?.status === 401) {
         throw new Error(
-          "Unauthorized: Invalid username or password for supervisord API",
+          "Unauthorized: Invalid username or password for supervisord API"
         );
       }
       throw new Error(`Failed to get process list: ${error.message}`);
@@ -101,7 +103,7 @@ export class SupervisordClient {
     try {
       const response = await this.httpClient.post(
         "/program/startPrograms",
-        names,
+        names
       );
       return {
         success: true,
@@ -119,7 +121,7 @@ export class SupervisordClient {
     try {
       const response = await this.httpClient.post(
         "/program/stopPrograms",
-        names,
+        names
       );
       return {
         success: true,
@@ -135,7 +137,7 @@ export class SupervisordClient {
    */
   async getProgramLogPath(
     name: string,
-    type: "stdout" | "stderr" = "stdout",
+    type: "stdout" | "stderr" = "stdout"
   ): Promise<string | null> {
     try {
       const programs = await this.getAllProcessInfo();
@@ -145,13 +147,19 @@ export class SupervisordClient {
         throw new Error(`Program '${name}' not found`);
       }
 
-      let logPath = type === "stdout"
-        ? program.stdout_logfile
-        : program.stderr_logfile;
+      let logPath =
+        type === "stdout" ? program.stdout_logfile : program.stderr_logfile;
+
+      // 处理多个路径（用逗号分隔的情况）
+      if (logPath && logPath.includes(",")) {
+        logPath = logPath.split(",")[0].trim();
+      }
 
       // 如果是相对路径，则加上基础目录
       if (
-        logPath && logPath !== "AUTO" && !logPath.startsWith("/") &&
+        logPath &&
+        logPath !== "AUTO" &&
+        !logPath.startsWith("/") &&
         !logPath.match(/^[A-Za-z]:/)
       ) {
         logPath = `${this.commandDir}/${logPath}`;
@@ -160,7 +168,7 @@ export class SupervisordClient {
       return logPath;
     } catch (error: any) {
       throw new Error(
-        `Failed to get log path for program '${name}': ${error.message}`,
+        `Failed to get log path for program '${name}': ${error.message}`
       );
     }
   }
