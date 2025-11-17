@@ -25,6 +25,9 @@ const SUPERVISORD_PASSWORD = process.env.SUPERVISORD_PASSWORD;
 const SUPERVISORD_EXECUTABLE_PATH = process.env.SUPERVISORD_EXECUTABLE_PATH; // supervisord 可执行文件路径
 const CONFIG_FILE_PATH =
   process.env.SUPERVISORD_CONFIG_FILE || "/etc/supervisord.conf";
+/** Supervisord 运行命令所在目录（用于查找日志文件） */
+const SUPERVISORD_COMMAND_DIR =
+  process.env.SUPERVISORD_COMMAND_DIR || '/var/log/supervisor';
 const MCP_PORT = process.env.MCP_PORT
   ? parseInt(process.env.MCP_PORT, 10)
   : 3000;
@@ -139,14 +142,29 @@ const supervisordUtils = {
   // 获取 supervisord 日志路径
   getSupervisordLogPath(): string | null {
     try {
-      const configContent = configManager.readConfig();
-      const logFileMatch = configContent.match(/logfile\s*=\s*(.+)/);
-      if (logFileMatch) {
-        return logFileMatch[1].trim().split(",")[0]; // 只取第一个路径
+      // 使用 ini 库解析配置文件
+      const config = configManager.getParsedConfig();
+
+      // 查找 supervisord 节中的 logfile 配置
+      if (config['supervisord'] && config['supervisord'].logfile) {
+        let logPath = config['supervisord'].logfile as string;
+
+        // 处理多个路径（用逗号分隔的情况）
+        logPath = logPath.split(',')[0].trim();
+
+        // 如果是相对路径，则加上基础目录
+        if (logPath && !logPath.startsWith('/') && !logPath.match(/^[A-Za-z]:/)) {
+          logPath = `${SUPERVISORD_COMMAND_DIR}/${logPath}`;
+        }
+
+        return logPath;
       }
-      return "logs/supervisord.log"; // 默认路径
+
+      // 如果没有找到 supervisord 节，使用环境变量指定的目录作为默认路径
+      return `${SUPERVISORD_COMMAND_DIR}/supervisord.log`;
     } catch (error) {
-      return "logs/supervisord.log";
+      // 如果解析失败，使用环境变量指定的目录作为默认路径
+      return `${SUPERVISORD_COMMAND_DIR}/supervisord.log`;
     }
   },
 };
@@ -155,7 +173,8 @@ const supervisordUtils = {
 const supervisordClient = new SupervisordClient(
   `http://${SUPERVISORD_HOST}:${SUPERVISORD_PORT}`,
   SUPERVISORD_USERNAME,
-  SUPERVISORD_PASSWORD
+  SUPERVISORD_PASSWORD,
+  SUPERVISORD_COMMAND_DIR
 );
 
 // 创建 MCP 服务器

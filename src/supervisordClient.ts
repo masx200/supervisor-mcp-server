@@ -29,13 +29,15 @@ export interface OperationResult {
 export class SupervisordClient {
   private httpClient: AxiosInstance;
   private baseURL: string;
+  private commandDir: string;
 
-  constructor(baseURL: string = 'http://127.0.0.1:9001', username?: string, password?: string) {
+  constructor(baseURL: string = 'http://127.0.0.1:9001', username?: string, password?: string, commandDir?: string) {
     this.baseURL = baseURL;
-    
-    const auth = username && password ? 
+    this.commandDir = commandDir || process.env.SUPERVISORD_COMMAND_DIR || '/var/log/supervisor';
+
+    const auth = username && password ?
       { username, password } : undefined;
-    
+
     this.httpClient = axios.create({
       baseURL,
       auth,
@@ -122,12 +124,19 @@ export class SupervisordClient {
     try {
       const programs = await this.getAllProcessInfo();
       const program = programs.find(p => p.name === name);
-      
+
       if (!program) {
         throw new Error(`Program '${name}' not found`);
       }
 
-      return type === 'stdout' ? program.stdout_logfile : program.stderr_logfile;
+      let logPath = type === 'stdout' ? program.stdout_logfile : program.stderr_logfile;
+
+      // 如果是相对路径，则加上基础目录
+      if (logPath && logPath !== 'AUTO' && !logPath.startsWith('/') && !logPath.match(/^[A-Za-z]:/)) {
+        logPath = `${this.commandDir}/${logPath}`;
+      }
+
+      return logPath;
     } catch (error: any) {
       throw new Error(`Failed to get log path for program '${name}': ${error.message}`);
     }

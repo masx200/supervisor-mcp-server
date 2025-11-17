@@ -67,6 +67,9 @@ SUPERVISORD_PASSWORD=password       # supervisord 密码（可选）
 # 配置文件路径
 SUPERVISORD_CONFIG_FILE=/etc/supervisord.conf  # supervisord 配置文件路径
 
+# Supervisord 运行目录
+SUPERVISORD_COMMAND_DIR=/var/log/supervisor     # supervisord 运行命令所在目录（用于查找日志文件）
+
 # MCP 服务器配置
 MCP_PORT=3000                       # MCP 服务器监听端口
 ```
