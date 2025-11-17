@@ -69,16 +69,27 @@ const supervisordUtils = {
   // 获取 supervisord PID
   async getSupervisordPid(): Promise<string | null> {
     try {
-      const configContent = configManager.readConfig();
-      const pidFileMatch = configContent.match(/pidfile\s*=\s*(.+)/);
-      const pidFilePath = pidFileMatch
-        ? pidFileMatch[1].trim()
-        : "supervisord.pid";
+      // 使用 ini 库解析配置文件，而不是正则表达式
+      const config = configManager.getParsedConfig();
 
-      const fs = await import("fs");
-      if (fs.existsSync(pidFilePath)) {
-        return fs.readFileSync(pidFilePath, "utf8").trim();
+      // 查找 supervisord 节中的 pidfile 配置
+      if (config["supervisord"] && config["supervisord"].pidfile) {
+        let pidFilePath = config["supervisord"].pidfile as string;
+
+        // 处理多个路径（用逗号分隔的情况）
+        pidFilePath = pidFilePath.split(",")[0].trim();
+
+        // 如果是相对路径，则加上基础目录
+        if (pidFilePath && !pidFilePath.startsWith("/") && !pidFilePath.match(/^[A-Za-z]:/)) {
+          pidFilePath = `${SUPERVISORD_COMMAND_DIR}/${pidFilePath}`;
+        }
+
+        const fs = await import("fs");
+        if (fs.existsSync(pidFilePath)) {
+          return fs.readFileSync(pidFilePath, "utf8").trim();
+        }
       }
+
       return null;
     } catch (error) {
       return null;
