@@ -20,9 +20,10 @@ async function testMcpServerWithSDK() {
     // Create HTTP transport to connect to our running server with authentication
     const serverUrl = new URL('http://localhost:30000/mcp');
     const transport = new StreamableHTTPClientTransport(serverUrl, {
+      requestInit: {
       headers: {
         'Authorization': 'Basic ' + Buffer.from('b18b935c-1551-4b6f-b70c-4d6a3e833adf:8tn6y2o8hthggug600eswffzpo5bke').toString('base64')
-      }
+      }}
     });
 
     // Connect to the server
