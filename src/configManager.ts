@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, readFileSync, writeFileSync, statSync } from "fs";
 import { parse, stringify } from "ini";
 
 // 配置文件节接口
@@ -380,7 +380,7 @@ export class ConfigManager {
         0,
       );
 
-      const stats = require("fs").statSync(this.configPath);
+      const stats = statSync(this.configPath);
 
       return {
         totalSections,
