@@ -1,21 +1,21 @@
 #!/usr/bin/env node
 // 简单的构建测试脚本
 
-const { execSync } = require("child_process");
-const fs = require("fs");
-const path = require("path");
+import { execSync } from "child_process";
+import { existsSync, readFileSync } from "fs";
+import path from "path";
 
 console.log("=== Supervisor MCP Server 构建测试 ===\n");
 
 // 检查 package.json 是否存在
-if (!fs.existsSync("./package.json")) {
+if (!existsSync("./package.json")) {
   console.error("❌ package.json 不存在");
   process.exit(1);
 }
 console.log("✅ package.json 存在");
 
 // 检查 src 目录
-if (!fs.existsSync("./src")) {
+if (!existsSync("./src")) {
   console.error("❌ src 目录不存在");
   process.exit(1);
 }
@@ -30,7 +30,7 @@ const requiredFiles = [
 ];
 
 for (const file of requiredFiles) {
-  if (!fs.existsSync(file)) {
+  if (!existsSync(file)) {
     console.error(`❌ 必需文件不存在: ${file}`);
     process.exit(1);
   }
@@ -39,7 +39,7 @@ for (const file of requiredFiles) {
 
 // 检查 package.json 中的依赖
 try {
-  const packageJson = JSON.parse(fs.readFileSync("./package.json", "utf8"));
+  const packageJson = JSON.parse(readFileSync("./package.json", "utf8"));
 
   const requiredDeps = [
     "morgan",
@@ -75,7 +75,7 @@ try {
 }
 
 // 检查 tsconfig.json
-if (!fs.existsSync("./tsconfig.json")) {
+if (!existsSync("./tsconfig.json")) {
   console.error("❌ tsconfig.json 不存在");
   process.exit(1);
 }
@@ -94,7 +94,7 @@ try {
 // 检查 Morgan 集成
 console.log("\n=== Morgan HTTP 日志集成检查 ===");
 try {
-  const serverContent = fs.readFileSync("./src/server.ts", "utf8");
+  const serverContent = readFileSync("./src/server.ts", "utf8");
   if (serverContent.includes("import morgan from 'morgan'")) {
     console.log("✅ Morgan 导入正确");
   } else {
