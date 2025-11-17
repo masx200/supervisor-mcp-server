@@ -4,10 +4,10 @@
  * 测试新增的 create_program 和 delete_program 功能
  */
 
-import { ConfigManager } from './src/configManager.js';
+import { ConfigManager } from './dist/configManager.js';
 
-// 创建配置管理器实例
-const configManager = new ConfigManager('/etc/supervisord.conf');
+// 创建配置管理器实例，使用项目中的示例配置文件
+const configManager = new ConfigManager('./example-supervisord.conf');
 
 // 测试配置管理器的新功能
 async function testConfigManager() {
