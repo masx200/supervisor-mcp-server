@@ -139,7 +139,7 @@ const supervisordUtils = {
     return new Promise((resolve) => {
       const args = ["ctl", "signal", signal, programName];
       if (CONFIG_FILE_PATH) {
-        args.unshift("-c", `"${CONFIG_FILE_PATH}"`);
+        args.unshift("-c", `${CONFIG_FILE_PATH}`);
       }
 
       const processSUPERVISORD = spawn(SUPERVISORD_EXECUTABLE_PATH, args);
