@@ -29,7 +29,8 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "main": "simple-mcp-test.js",
+  "main": "dist/server.js",
+  "types": "src/server.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/masx200/supervisor-mcp-server.git"
