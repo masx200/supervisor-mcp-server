@@ -746,6 +746,7 @@ const createServer = () => {
 
         if (!logPath) {
           return {
+            isError: true,
             content: [
               {
                 type: "text",
@@ -757,6 +758,7 @@ const createServer = () => {
 
         if (!LogReader.isFileReadable(logPath)) {
           return {
+            isError: true,
             content: [
               {
                 type: "text",
