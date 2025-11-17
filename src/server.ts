@@ -951,6 +951,292 @@ const createServer = () => {
     },
   );
 
+  // 15. 创建新程序
+  server.registerTool(
+    "create_program",
+    {
+      title: "Create Program",
+      description:
+        "Create a new program/service in supervisord configuration",
+      inputSchema: {
+        name: z.string().describe("Name of the program to create"),
+        command: z.string().describe("Command to execute"),
+        directory: z
+          .string()
+          .optional()
+          .describe("Working directory for the program"),
+        user: z
+          .string()
+          .optional()
+          .describe("User to run the program as"),
+        autostart: z
+          .boolean()
+          .default(true)
+          .describe("Start program automatically when supervisord starts"),
+        autorestart: z
+          .boolean()
+          .default(true)
+          .describe("Restart program automatically if it crashes"),
+        startsecs: z
+          .number()
+          .default(1)
+          .describe("Number of seconds program needs to stay running to consider it successfully started"),
+        startretries: z
+          .number()
+          .default(3)
+          .describe("Number of retries during start before giving up"),
+        stopwaitsecs: z
+          .number()
+          .default(10)
+          .describe("Number of seconds to wait for SIGKILL before giving up"),
+        stopsignal: z
+          .string()
+          .default("TERM")
+          .describe("Signal to send to stop the program"),
+        stdout_logfile: z
+          .string()
+          .optional()
+          .describe("Path to stdout log file (default: auto-generated)"),
+        stderr_logfile: z
+          .string()
+          .optional()
+          .describe("Path to stderr log file (default: auto-generated)"),
+        environment: z
+          .string()
+          .optional()
+          .describe("Environment variables (format: KEY1=VALUE1,KEY2=VALUE2)"),
+        priority: z
+          .number()
+          .optional()
+          .describe("Startup priority (lower numbers start first)"),
+        numprocs: z
+          .number()
+          .default(1)
+          .describe("Number of processes to start"),
+        process_name: z
+          .string()
+          .optional()
+          .describe("Process name pattern (use with numprocs)"),
+      },
+    },
+    async ({
+      name,
+      command,
+      directory,
+      user,
+      autostart = true,
+      autorestart = true,
+      startsecs = 1,
+      startretries = 3,
+      stopwaitsecs = 10,
+      stopsignal = "TERM",
+      stdout_logfile,
+      stderr_logfile,
+      environment,
+      priority,
+      numprocs = 1,
+      process_name,
+    }): Promise<CallToolResult> => {
+      try {
+        // 检查程序是否已存在
+        const programs = await supervisordClient.getAllProcessInfo();
+        const existingProgram = programs.find((p) => p.name === name);
+
+        if (existingProgram) {
+          return {
+            isError: true,
+            content: [
+              {
+                type: "text",
+                text: `Program '${name}' already exists`,
+              },
+            ],
+          };
+        }
+
+        // 构建程序配置
+        const programConfig: any = {
+          command: command,
+          autostart: autostart,
+          autorestart: autorestart,
+          startsecs: startsecs,
+          startretries: startretries,
+          stopwaitsecs: stopwaitsecs,
+          stopsignal: stopsignal,
+          numprocs: numprocs,
+        };
+
+        // 添加可选参数
+        if (directory) programConfig.directory = directory;
+        if (user) programConfig.user = user;
+        if (priority !== undefined) programConfig.priority = priority;
+        if (process_name) programConfig.process_name = process_name;
+
+        // 自动生成日志文件路径（如果未提供）
+        if (!stdout_logfile) {
+          stdout_logfile = `${SUPERVISORD_COMMAND_DIR}/${name}.log`;
+        }
+        if (!stderr_logfile) {
+          stderr_logfile = `${SUPERVISORD_COMMAND_DIR}/${name}.error.log`;
+        }
+
+        programConfig.stdout_logfile = stdout_logfile;
+        programConfig.stderr_logfile = stderr_logfile;
+
+        // 解析环境变量
+        if (environment) {
+          const envVars: { [key: string]: string } = {};
+          environment.split(",").forEach((pair) => {
+            const [key, value] = pair.split("=");
+            if (key && value) {
+              envVars[key.trim()] = value.trim();
+            }
+          });
+          programConfig.environment = envVars;
+        }
+
+        // 添加程序节到配置
+        const sectionName = `program:${name}`;
+        const result = configManager.addSection(sectionName, programConfig);
+
+        if (!result.success) {
+          return {
+            isError: true,
+            content: [
+              {
+                type: "text",
+                text: `Failed to create program: ${result.message}`,
+              },
+            ],
+          };
+        }
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Successfully created program '${name}':\n` +
+                `Command: ${command}\n` +
+                `Directory: ${directory || "Default"}\n` +
+                `User: ${user || "Default"}\n` +
+                `Autostart: ${autostart}\n` +
+                `Autorestart: ${autorestart}\n` +
+                `Stdout Log: ${stdout_logfile}\n` +
+                `Stderr Log: ${stderr_logfile}\n\n` +
+                `Note: Use 'reload_supervisor' to apply the new configuration.`,
+            },
+          ],
+        };
+      } catch (error: any) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: "text",
+              text: `Error creating program '${name}': ${error.message}`,
+            },
+          ],
+        };
+      }
+    },
+  );
+
+  // 16. 删除程序
+  server.registerTool(
+    "delete_program",
+    {
+      title: "Delete Program",
+      description:
+        "Delete a program/service from supervisord configuration",
+      inputSchema: {
+        name: z.string().describe("Name of the program to delete"),
+        force: z
+          .boolean()
+          .default(false)
+          .describe("Force delete even if program is running"),
+      },
+    },
+    async ({ name, force = false }): Promise<CallToolResult> => {
+      try {
+        // 检查程序是否存在
+        const programs = await supervisordClient.getAllProcessInfo();
+        const program = programs.find((p) => p.name === name);
+
+        if (!program) {
+          return {
+            isError: true,
+            content: [
+              {
+                type: "text",
+                text: `Program '${name}' does not exist`,
+              },
+            ],
+          };
+        }
+
+        // 检查程序是否正在运行
+        if (program.statename === "RUNNING" && !force) {
+          return {
+            isError: true,
+            content: [
+              {
+                type: "text",
+                text: `Program '${name}' is currently running (PID: ${program.pid}). ` +
+                  `Stop it first or use force=true to delete anyway.`,
+              },
+            ],
+          };
+        }
+
+        // 如果程序正在运行，先停止它
+        if (program.statename === "RUNNING" && force) {
+          try {
+            await supervisordClient.stopProgram(name);
+          } catch (error) {
+            // 忽略停止失败，继续删除
+          }
+        }
+
+        // 删除程序节
+        const sectionName = `program:${name}`;
+        const result = configManager.deleteSection(sectionName);
+
+        if (!result.success) {
+          return {
+            isError: true,
+            content: [
+              {
+                type: "text",
+                text: `Failed to delete program: ${result.message}`,
+              },
+            ],
+          };
+        }
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Successfully deleted program '${name}'\n` +
+                `The program configuration has been removed from supervisord.conf\n` +
+                `Note: Use 'reload_supervisor' to apply the changes.`,
+            },
+          ],
+        };
+      } catch (error: any) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: "text",
+              text: `Error deleting program '${name}': ${error.message}`,
+            },
+          ],
+        };
+      }
+    },
+  );
+
   return server;
 };
 
@@ -1144,7 +1430,7 @@ app.listen(MCP_PORT, () => {
     }`,
   );
   console.log(
-    `Available tools: 14 tools including signal sending, supervisor info, and enhanced logging`,
+    `Available tools: 16 tools including create/delete programs, signal sending, supervisor info, and enhanced logging`,
   );
   console.log(`Logs will be output to console in Apache combined format`);
 });
