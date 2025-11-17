@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import morgan from "morgan";
-import { spawn, exec } from "child_process";
+import { spawn } from "child_process";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import cors from "cors";
@@ -11,12 +11,10 @@ import {
   isInitializeRequest,
 } from "@modelcontextprotocol/sdk/types.js";
 import { InMemoryEventStore } from "@modelcontextprotocol/sdk/examples/shared/inMemoryEventStore.js";
-import { SupervisordClient, ProcessInfo } from "./supervisordClient.js";
+import { SupervisordClient } from "./supervisordClient.js";
 import { LogReader, LogReadOptions } from "./logReader.js";
 import {
   ConfigManager,
-  ConfigSection,
-  SupervisordConfig,
 } from "./configManager.js";
 
 // 环境配置
