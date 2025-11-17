@@ -52,18 +52,8 @@ async function testMcpServerWithSDK() {
       if (listResult.content && listResult.content.length > 0) {
         const content = listResult.content[0];
         if (content.type === "text") {
-          const data = JSON.parse(content.text);
           console.log("✅ list_programs result:");
-          console.log(`   Total programs: ${data.totalPrograms || 0}`);
-          if (data.programs && data.programs.length > 0) {
-            data.programs.forEach((program, i) => {
-              console.log(
-                `   ${i + 1}. ${program.name} - ${program.state} (${
-                  program.pid || "N/A"
-                })`,
-              );
-            });
-          }
+          console.log(`   Response: ${content.text}`);
         }
       }
     } catch (error) {
@@ -81,13 +71,8 @@ async function testMcpServerWithSDK() {
       if (infoResult.content && infoResult.content.length > 0) {
         const content = infoResult.content[0];
         if (content.type === "text") {
-          const data = JSON.parse(content.text);
           console.log("✅ get_supervisor_info result:");
-          console.log(`   PID: ${data.supervisorInfo?.pid || "N/A"}`);
-          console.log(`   Version: ${data.supervisorInfo?.version || "N/A"}`);
-          console.log(
-            `   API Version: ${data.supervisorInfo?.apiVersion || "N/A"}`,
-          );
+          console.log(`   Response: ${content.text}`);
         }
       }
     } catch (error) {
@@ -108,18 +93,8 @@ async function testMcpServerWithSDK() {
       if (logResult.content && logResult.content.length > 0) {
         const content = logResult.content[0];
         if (content.type === "text") {
-          const data = JSON.parse(content.text);
           console.log("✅ get_supervisor_log result:");
-          console.log(`   Log file: ${data.logPath || "N/A"}`);
-          console.log(
-            `   Content length: ${data.content?.length || 0} characters`,
-          );
-          if (data.content && data.content.length > 0) {
-            console.log(
-              "   First 200 chars:",
-              data.content.substring(0, 200) + "...",
-            );
-          }
+          console.log(`   Response: ${content.text.substring(0, 500)}...`);
         }
       }
     } catch (error) {
@@ -132,15 +107,15 @@ async function testMcpServerWithSDK() {
       const startResult = await client.callTool({
         name: "start_program",
         arguments: {
-          program: "test", // This might fail if program doesn't exist
+          name: "intelligentanalysis-api", // Use an existing program
         },
       });
 
       if (startResult.content && startResult.content.length > 0) {
         const content = startResult.content[0];
         if (content.type === "text") {
-          const data = JSON.parse(content.text);
-          console.log("✅ start_program result:", data);
+          console.log("✅ start_program result:");
+          console.log(`   Response: ${content.text}`);
         }
       }
     } catch (error) {
