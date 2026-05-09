@@ -41,5 +41,13 @@
   "bugs": {
     "url": "https://github.com/masx200/supervisor-mcp-server/issues"
   },
-  "homepage": "https://github.com/masx200/supervisor-mcp-server#readme"
+  "homepage": "https://github.com/masx200/supervisor-mcp-server#readme",
+  "pnpm": {
+    "overrides": {
+      "fast-uri": ">=3.1.2"
+    }
+  },
+  "overrides": {
+    "fast-uri": ">=3.1.2"
+  }
 }
